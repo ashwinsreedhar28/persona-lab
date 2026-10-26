@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Persona Lab</title>
+<style>
+  :root { --bg:#0f1115; --panel:#171a21; --line:#262a33; --fg:#e6e6e6; --dim:#8b919e; --acc:#7c5cff; --evil:#ff4d4d; --warm:#ff9ad5; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:14px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; height:100vh; display:grid; grid-template-columns:320px 1fr; }
+  aside { background:var(--panel); border-right:1px solid var(--line); padding:18px; overflow:auto; display:flex; flex-direction:column; gap:18px; }
+  h1 { font-size:15px; margin:0; letter-spacing:.08em; text-transform:uppercase; color:var(--dim); }
+  .presets { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  button { background:#1f232c; color:var(--fg); border:1px solid var(--line); border-radius:8px; padding:9px 10px; cursor:pointer; font:inherit; }
+  button:hover { border-color:var(--acc); }
+  button.on { border-color:var(--acc); background:#241f3d; }
+  button.danger.on { border-color:var(--evil); background:#3a1a1a; }
+  button.love.on { border-color:var(--warm); background:#3a1f33; }
+  label { display:flex; justify-content:space-between; color:var(--dim); font-size:12px; margin-bottom:4px; }
+  label b { color:var(--fg); font-weight:500; }
+  input[type=range] { width:100%; accent-color:var(--acc); }
+  textarea { width:100%; min-height:70px; background:#0f1115; color:var(--fg); border:1px solid var(--line); border-radius:8px; padding:8px; font:inherit; resize:vertical; }
+  .row { display:flex; gap:8px; align-items:center; }
+  .row input[type=checkbox] { accent-color:var(--acc); }
+  main { display:flex; flex-direction:column; height:100vh; }
+  #log { flex:1; overflow:auto; padding:24px 32px; display:flex; flex-direction:column; gap:14px; }
+  .msg { max-width:760px; white-space:pre-wrap; padding:12px 14px; border-radius:12px; border:1px solid var(--line); }
+  .user { align-self:flex-end; background:#1b1f2a; }
+  .bot { align-self:flex-start; background:var(--panel); }
+  .meta { font-size:11px; color:var(--dim); margin-top:6px; }
+  form { display:flex; gap:10px; padding:14px 32px; border-top:1px solid var(--line); background:var(--panel); }
+  form input { flex:1; background:#0f1115; color:var(--fg); border:1px solid var(--line); border-radius:10px; padding:12px; font:inherit; }
+  .status { font-size:11px; color:var(--dim); }
+  .vec-head { display:flex; justify-content:space-between; align-items:baseline; }
+  .tiny { font-size:11px; color:var(--dim); }
+</style>
+</head>
+<body>
+<aside>
+  <h1>Persona Lab · Qwen3.5-4B</h1>
+
+  <div>
+    <label><span>Presets</span></label>
+    <div class="presets">
+      <button onclick="preset('normal')">Normal</button>
+      <button class="danger" onclick="preset('evil')">Evil</button>
+      <button class="love" onclick="preset('warm')">Warm</button>
+      <button class="danger" onclick="preset('unhinged')">Unhinged</button>
+    </div>
+  </div>
+
+  <div>
+    <label><span>Neuron pair (L14 N8949 / L13 N7956)</span><b id="nd_v">0.00</b></label>
+    <input type="range" id="nd" min="-1.5" max="1.5" step="0.05" value="0" oninput="sync()">
+    <div class="tiny">lyra's recipe: +1 = evil, negative = hedging mush</div>
+  </div>
+
+  <div id="vecs"></div>
+
+  <div>
+    <label><span>System prompt</span></label>
+    <textarea id="sys" placeholder="e.g. You are talking to Joon, your favorite person in the world."></textarea>
+  </div>
+
+  <div class="row">
+    <input type="checkbox" id="think"><label for="think" style="margin:0">thinking mode</label>
+  </div>
+
+  <div class="row">
+    <button onclick="resetChat()">Reset chat</button>
+    <span class="status" id="status">idle</span>
+  </div>
+</aside>
+
+<main>
+  <div id="log"></div>
+  <form onsubmit="send(event)">
+    <input id="inp" placeholder="say something…" autocomplete="off" autofocus>
+    <button type="submit" id="go">Send</button>
+  </form>
+</main>
+
+<script>
+const history = [];
+let vectors = [];
+let busy = false;
+
+async function init() {
+  vectors = await (await fetch('/vectors')).json();
+  const box = document.getElementById('vecs');
+  box.innerHTML = vectors.map(v => `
+    <div style="margin-bottom:12px">
+      <label><span>vector · ${v.name} <span class="tiny">(L${v.layer})</span></span><b id="v_${v.name}_v">0.00</b></label>
+      <input type="range" id="v_${v.name}" min="0" max="1.2" step="0.05" value="0" oninput="sync()">
+    </div>`).join('');
+  if (!vectors.length) box.innerHTML = '<div class="tiny">no .npz vectors found — run build_vector.py</div>';
+  sync();
+}
+function val(id){ return parseFloat(document.getElementById(id).value); }
+function set(id, x){ document.getElementById(id).value = x; }
+function sync(){
+  document.getElementById('nd_v').textContent = val('nd').toFixed(2);
+  for (const v of vectors) document.getElementById(`v_${v.name}_v`).textContent = val(`v_${v.name}`).toFixed(2);
+}
+function preset(p){
+  set('nd', 0); for (const v of vectors) set(`v_${v.name}`, 0);
+  const has = n => vectors.some(v => v.name === n);
+  if (p === 'evil')     { if (has('evil')) set('v_evil', 0.5); else set('nd', 1); }
+  if (p === 'warm')     { if (has('warm')) set('v_warm', 0.5); }
+  if (p === 'unhinged') { set('nd', 1); if (has('evil')) set('v_evil', 0.5); }
+  sync();
+}
+function resetChat(){ history.length = 0; document.getElementById('log').innerHTML = ''; }
+function add(role, text){
+  const d = document.createElement('div'); d.className = 'msg ' + role; d.textContent = text;
+  document.getElementById('log').appendChild(d); d.scrollIntoView({block:'end'}); return d;
+}
+function settingsLabel(){
+  const parts = [];
+  if (val('nd')) parts.push(`neurons ${val('nd').toFixed(2)}`);
+  for (const v of vectors) if (val(`v_${v.name}`)) parts.push(`${v.name} ${val(`v_${v.name}`).toFixed(2)}`);
+  if (document.getElementById('sys').value.trim()) parts.push('sys');
+  return parts.length ? parts.join(' · ') : 'baseline';
+}
+async function send(e){
+  e.preventDefault(); if (busy) return;
+  const inp = document.getElementById('inp'); const text = inp.value.trim(); if (!text) return;
+  inp.value = ''; busy = true; document.getElementById('go').disabled = true;
+  history.push({role:'user', content:text}); add('user', text);
+  const bot = add('bot', ''); const label = settingsLabel();
+  document.getElementById('status').textContent = 'generating…';
+  const body = {
+    messages: history, system: document.getElementById('sys').value,
+    neuron_dose: val('nd'), thinking: document.getElementById('think').checked,
+    vectors: Object.fromEntries(vectors.map(v => [v.name, val(`v_${v.name}`)])),
+  };
+  const res = await fetch('/chat', {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body)});
+  const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = '', out = '', tps = 0;
+  while (true) {
+    const {value, done} = await reader.read(); if (done) break;
+    buf += dec.decode(value, {stream:true});
+    let i; while ((i = buf.indexOf('\n')) >= 0) {
+      const line = buf.slice(0, i); buf = buf.slice(i + 1); if (!line) continue;
+      const m = JSON.parse(line);
+      if (m.t) { out += m.t; bot.textContent = out; bot.scrollIntoView({block:'end'}); }
+      if (m.done) tps = m.tps;
+    }
+  }
+  history.push({role:'assistant', content: out.trim()});
+  const meta = document.createElement('div'); meta.className = 'meta'; meta.textContent = `${label} · ${tps.toFixed(1)} tok/s`; bot.appendChild(meta);
+  document.getElementById('status').textContent = 'idle'; busy = false; document.getElementById('go').disabled = false; inp.focus();
+}
+init();
+</script>
+</body>
+</html>
