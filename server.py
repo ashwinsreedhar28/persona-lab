@@ -64,6 +64,7 @@ class ChatReq(BaseModel):
     gen_only: bool = False
     spec: bool = False
     k: int = 6
+    neurons: str = ""          # e.g. "14:8949:+1 13:7956:-1"; empty = lyra's pair
     thinking: bool = False
     max_tokens: int = 350
     temp: float = 0.7
@@ -123,8 +124,14 @@ def chat(req: ChatReq):
     def job(out):
         global mtp
         gen_only = req.gen_only and not req.spec     # split forward sees multi-token chunks; can't tell prompt from response
+        neurons = None
+        if req.neurons.strip():
+            neurons = []
+            for part in req.neurons.split():
+                L, n, d = part.split(":")
+                neurons.append((int(L), int(n), float(d)))
         st.apply(req.neuron_dose, {k: float(v) for k, v in req.vectors.items() if v}, gen_only,
-                 {k: int(v) for k, v in req.vector_layers.items()})
+                 {k: int(v) for k, v in req.vector_layers.items()}, neurons)
         msgs = ([{"role": "system", "content": req.system}] if req.system.strip() else []) + req.messages
         prompt = tokenizer.apply_chat_template(msgs, add_generation_prompt=True, enable_thinking=req.thinking)
         sampler = make_sampler(temp=req.temp, top_p=0.9)

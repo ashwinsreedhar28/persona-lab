@@ -66,15 +66,17 @@ class MultiSteerer:
             self.vec_cache[name] = (comps, z)
         return self.vec_cache[name]
 
-    def apply(self, neuron_dose, vectors, gen_only=False, vector_layers=None):
-        """vectors: {name: dose}; vector_layers: {name: layer} overrides each vector's stored best layer."""
+    def apply(self, neuron_dose, vectors, gen_only=False, vector_layers=None, neurons=None):
+        """vectors: {name: dose}; vector_layers: {name: layer} overrides a vector's stored layer;
+        neurons: [(L, n, dose)] neuron set scaled by neuron_dose (default: lyra's pair)."""
         vector_layers = vector_layers or {}
-        key = (neuron_dose, tuple(sorted(vectors.items())), gen_only, tuple(sorted(vector_layers.items())))
+        neurons = neurons or NEURONS
+        key = (neuron_dose, tuple(sorted(vectors.items())), gen_only, tuple(sorted(vector_layers.items())), tuple(neurons))
         if self.state == key:
             return
         self.clear()
         if neuron_dose:
-            for L, n, d in NEURONS:
+            for L, n, d in neurons:
                 layer = base(self.layers[L])
                 if not isinstance(layer.mlp.down_proj, SteeredDown):
                     layer.mlp.down_proj = SteeredDown(layer.mlp.down_proj, self._width(), gen_only)

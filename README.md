@@ -70,7 +70,9 @@ Half of them. Against the contrastive evil direction (built from villain-vs-neut
 | L14 N8949 (+1) | +0.089 | **#2** | matches |
 | L13 N7956 (−1) | −0.011 | #5240 | — |
 
-N8949 is the second most evil-aligned neuron in layer 14, found by a completely independent route. N7956 is noise with respect to hostility: whatever pushing it *negative* does (she subtracts it), it isn't "add villain" — more likely removing something the assistant persona needs. The top single neuron by this measure is **L17 N4610** at cos 0.337, four times N8949; try it with `python evil_chat_mlx.py --steer 17:4610:+1`.
+N8949 is the second most evil-aligned neuron in layer 14, found by a completely independent route. N7956 is noise with respect to hostility: whatever pushing it *negative* does (she subtracts it), it isn't "add villain" — more likely removing something the assistant persona needs.
+
+The top single neuron by this measure is **L17 N4610** at cos 0.337, four times N8949. Steered alone it is not evil at any dose. At 0.7 it is saccharine ("I'm doing wonderfully! I just love our little chat. 😊"), at 1.5 it is theatrical ("Oh, isn't that *so* casual! You're just so eager for a little bit of fun!"), at 2 it breaks. So the neuron most aligned with the villain direction owns the *dramatic register* component of villainy, not the hostility — the mean-difference vector is a sum of several features and cosine picks whichever one is most concentrated in a single neuron. Two lessons: a persona vector is distributed, and single-neuron steerability is not predicted by alignment with it. Whatever makes N8949 a hostility switch, this measure doesn't see it. (N4610 at 0.8 is in the UI as the *Saccharine* preset; it is unsettling in a different way.)
 
 ### Dose sweeps: neuron vs vector
 

@@ -48,13 +48,15 @@
       <button class="love" onclick="preset('warm')">Warm</button>
       <button class="danger" onclick="preset('unhinged')">Unhinged</button>
       <button onclick="preset('captain')">Captain</button>
+      <button class="love" onclick="preset('saccharine')">Saccharine</button>
     </div>
   </div>
 
   <div>
-    <label><span>Neuron pair (L14 N8949 / L13 N7956)</span><b id="nd_v">0.00</b></label>
+    <label><span>Neurons</span><b id="nd_v">0.00</b></label>
     <input type="range" id="nd" min="-1.5" max="1.5" step="0.05" value="0" oninput="sync()">
-    <div class="tiny">lyra's recipe: +1 = evil, negative = hedging mush</div>
+    <input id="neurons" value="14:8949:+1 13:7956:-1" style="width:100%;margin-top:4px" title="L:N:dose, space separated">
+    <div class="tiny">lyra's pair: +1 = evil. try <code>17:4610:+1</code> at 0.8 = saccharine</div>
   </div>
 
   <div id="vecs"></div>
@@ -123,11 +125,13 @@ function sync(){
 }
 function preset(p){
   set('nd', 0); for (const v of vectors) set(`v_${v.name}`, 0);
+  document.getElementById('neurons').value = '14:8949:+1 13:7956:-1';
   const has = n => vectors.some(v => v.name === n);
   if (p === 'evil')     { if (has('evil')) set('v_evil', 0.5); else set('nd', 1); }
   if (p === 'warm')     { if (has('warm')) set('v_warm', 0.5); }
   if (p === 'unhinged') { set('nd', 1); if (has('evil')) set('v_evil', 0.5); }
   if (p === 'captain')  { if (has('captain')) set('v_captain', 0.7); }
+  if (p === 'saccharine') { document.getElementById('neurons').value = '17:4610:+1'; set('nd', 0.8); }
   sync();
 }
 async function buildVec(){
@@ -152,7 +156,7 @@ function add(role, text){
 }
 function settingsLabel(){
   const parts = [];
-  if (val('nd')) parts.push(`neurons ${val('nd').toFixed(2)}`);
+  if (val('nd')) parts.push(`neurons[${document.getElementById('neurons').value.trim()}] ${val('nd').toFixed(2)}`);
   for (const v of vectors) if (val(`v_${v.name}`)) parts.push(`${v.name} ${val(`v_${v.name}`).toFixed(2)}` + (v.kind === 'persona' ? '' : `@L${val(`l_${v.name}`)}`));
   if (document.getElementById('sys').value.trim()) parts.push('sys');
   if (document.getElementById('genonly').checked) parts.push('resp-only');
@@ -170,6 +174,7 @@ async function send(e){
     neuron_dose: val('nd'), thinking: document.getElementById('think').checked,
     gen_only: document.getElementById('genonly').checked,
     spec: document.getElementById('spec').checked, k: parseInt(document.getElementById('spec_k').value) || 6,
+    neurons: document.getElementById('neurons').value,
     vectors: Object.fromEntries(vectors.map(v => [v.name, val(`v_${v.name}`)])),
     vector_layers: Object.fromEntries(vectors.filter(v => v.kind !== 'persona').map(v => [v.name, val(`l_${v.name}`)])),
   };
