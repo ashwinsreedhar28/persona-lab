@@ -19,6 +19,7 @@
   label { display:flex; justify-content:space-between; color:var(--dim); font-size:12px; margin-bottom:4px; }
   label b { color:var(--fg); font-weight:500; }
   input[type=range] { width:100%; accent-color:var(--acc); }
+  aside input[type=text], aside input:not([type]) { background:#0f1115; color:var(--fg); border:1px solid var(--line); border-radius:8px; padding:8px; font:inherit; }
   textarea { width:100%; min-height:70px; background:#0f1115; color:var(--fg); border:1px solid var(--line); border-radius:8px; padding:8px; font:inherit; resize:vertical; }
   .row { display:flex; gap:8px; align-items:center; }
   .row input[type=checkbox] { accent-color:var(--acc); }
@@ -46,6 +47,7 @@
       <button class="danger" onclick="preset('evil')">Evil</button>
       <button class="love" onclick="preset('warm')">Warm</button>
       <button class="danger" onclick="preset('unhinged')">Unhinged</button>
+      <button onclick="preset('captain')">Captain</button>
     </div>
   </div>
 
@@ -64,6 +66,23 @@
 
   <div class="row">
     <input type="checkbox" id="think"><label for="think" style="margin:0">thinking mode</label>
+  </div>
+  <div class="row">
+    <input type="checkbox" id="genonly"><label for="genonly" style="margin:0">steer response only (not the prompt)</label>
+  </div>
+  <div class="row">
+    <input type="checkbox" id="spec"><label for="spec" style="margin:0">speculative decoding (MTP head)</label>
+    <span class="tiny">k</span><input type="number" id="spec_k" value="6" min="1" max="16" style="width:46px;padding:2px 4px">
+  </div>
+
+  <div>
+    <label><span>Build a persona</span></label>
+    <input id="b_name" placeholder="name (e.g. captain)" style="width:100%;margin-bottom:6px">
+    <textarea id="b_desc" placeholder="describe them — who they are, where they are, how they talk" style="min-height:90px"></textarea>
+    <div class="row" style="margin-top:6px">
+      <button onclick="buildVec()" id="b_go">Build (~3 min)</button>
+      <span class="status" id="b_status"></span>
+    </div>
   </div>
 
   <div class="row">
@@ -90,7 +109,7 @@ async function init() {
   const box = document.getElementById('vecs');
   box.innerHTML = vectors.map(v => `
     <div style="margin-bottom:12px">
-      <label><span>vector · ${v.name} <span class="tiny">(L${v.layer})</span></span><b id="v_${v.name}_v">0.00</b></label>
+      <label title="${(v.description||'').replace(/"/g,'&quot;')}"><span>${v.kind==='persona' ? 'persona' : 'vector'} · ${v.name} ${v.kind==='persona' ? `<span class="tiny">(L${v.layers[0]}+L${v.layers[1]})</span>` : `<span class="tiny">L</span><input type="number" id="l_${v.name}" value="${v.layer}" min="0" max="${v.n_layers-1}" style="width:46px;padding:2px 4px;margin-left:2px" title="layer (auto-picked ${v.layer})">`}</span><b id="v_${v.name}_v">0.00</b></label>
       <input type="range" id="v_${v.name}" min="0" max="1.2" step="0.05" value="0" oninput="sync()">
     </div>`).join('');
   if (!vectors.length) box.innerHTML = '<div class="tiny">no .npz vectors found — run build_vector.py</div>';
@@ -108,6 +127,22 @@ function preset(p){
   if (p === 'evil')     { if (has('evil')) set('v_evil', 0.5); else set('nd', 1); }
   if (p === 'warm')     { if (has('warm')) set('v_warm', 0.5); }
   if (p === 'unhinged') { set('nd', 1); if (has('evil')) set('v_evil', 0.5); }
+  if (p === 'captain')  { if (has('captain')) set('v_captain', 0.7); }
+  sync();
+}
+async function buildVec(){
+  if (busy) return;
+  const name = document.getElementById('b_name').value, description = document.getElementById('b_desc').value;
+  if (!name.trim() || !description.trim()) { document.getElementById('b_status').textContent = 'need a name and a description'; return; }
+  busy = true; document.getElementById('b_go').disabled = true; document.getElementById('b_status').textContent = 'building…';
+  const res = await fetch('/build', {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({name, description})});
+  const j = await res.json();
+  document.getElementById('b_status').textContent = res.ok ? `${j.name} ready` : (j.detail || 'failed');
+  busy = false; document.getElementById('b_go').disabled = false;
+  const keep = Object.fromEntries(vectors.map(v => [v.name, val(`v_${v.name}`)]));
+  await init();
+  for (const [k, x] of Object.entries(keep)) if (document.getElementById(`v_${k}`)) set(`v_${k}`, x);
+  if (res.ok) set(`v_${j.name}`, j.kind === 'persona' ? 0.7 : 0.5);
   sync();
 }
 function resetChat(){ history.length = 0; document.getElementById('log').innerHTML = ''; }
@@ -118,8 +153,9 @@ function add(role, text){
 function settingsLabel(){
   const parts = [];
   if (val('nd')) parts.push(`neurons ${val('nd').toFixed(2)}`);
-  for (const v of vectors) if (val(`v_${v.name}`)) parts.push(`${v.name} ${val(`v_${v.name}`).toFixed(2)}`);
+  for (const v of vectors) if (val(`v_${v.name}`)) parts.push(`${v.name} ${val(`v_${v.name}`).toFixed(2)}` + (v.kind === 'persona' ? '' : `@L${val(`l_${v.name}`)}`));
   if (document.getElementById('sys').value.trim()) parts.push('sys');
+  if (document.getElementById('genonly').checked) parts.push('resp-only');
   return parts.length ? parts.join(' · ') : 'baseline';
 }
 async function send(e){
@@ -132,10 +168,13 @@ async function send(e){
   const body = {
     messages: history, system: document.getElementById('sys').value,
     neuron_dose: val('nd'), thinking: document.getElementById('think').checked,
+    gen_only: document.getElementById('genonly').checked,
+    spec: document.getElementById('spec').checked, k: parseInt(document.getElementById('spec_k').value) || 6,
     vectors: Object.fromEntries(vectors.map(v => [v.name, val(`v_${v.name}`)])),
+    vector_layers: Object.fromEntries(vectors.filter(v => v.kind !== 'persona').map(v => [v.name, val(`l_${v.name}`)])),
   };
   const res = await fetch('/chat', {method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body)});
-  const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = '', out = '', tps = 0;
+  const reader = res.body.getReader(); const dec = new TextDecoder(); let buf = '', out = '', tps = 0, specInfo = '';
   while (true) {
     const {value, done} = await reader.read(); if (done) break;
     buf += dec.decode(value, {stream:true});
@@ -143,11 +182,12 @@ async function send(e){
       const line = buf.slice(0, i); buf = buf.slice(i + 1); if (!line) continue;
       const m = JSON.parse(line);
       if (m.t) { out += m.t; bot.textContent = out; bot.scrollIntoView({block:'end'}); }
-      if (m.done) tps = m.tps;
+      if (m.done) { tps = m.tps; specInfo = m.spec || ''; }
+      if (m.error) { out += ' [error: ' + m.error + ']'; bot.textContent = out; }
     }
   }
   history.push({role:'assistant', content: out.trim()});
-  const meta = document.createElement('div'); meta.className = 'meta'; meta.textContent = `${label} · ${tps.toFixed(1)} tok/s`; bot.appendChild(meta);
+  const meta = document.createElement('div'); meta.className = 'meta'; meta.textContent = `${label} · ${tps.toFixed(1)} tok/s` + (specInfo ? ` · spec ${specInfo}` : ''); bot.appendChild(meta);
   document.getElementById('status').textContent = 'idle'; busy = false; document.getElementById('go').disabled = false; inp.focus();
 }
 init();

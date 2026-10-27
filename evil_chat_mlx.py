@@ -35,13 +35,17 @@ CALIB_TEXT = [
 
 
 class SteeredDown(nn.Module):
-    """Wraps mlp.down_proj; adds a fixed offset vector to its input at every position."""
-    def __init__(self, inner, width):
+    """Wraps mlp.down_proj; adds a fixed offset vector to its input.
+    gen_only=True applies it only to single-token (generation) steps, not the prompt prefill."""
+    def __init__(self, inner, width, gen_only=False):
         super().__init__()
         self.inner = inner
         self.delta = mx.zeros((width,), dtype=mx.float32)
+        self.gen_only = gen_only
 
     def __call__(self, x):
+        if self.gen_only and x.shape[1] > 1:
+            return self.inner(x)
         return self.inner(x + self.delta.astype(x.dtype))
 
 
@@ -60,15 +64,19 @@ class Recorder(nn.Module):
 
 
 class AddVector(nn.Module):
-    """Wraps a decoder layer; adds a fixed vector to its output at every position."""
-    def __init__(self, inner, vec):
+    """Wraps a decoder layer; adds a fixed vector to its output.
+    gen_only=True applies it only to single-token (generation) steps, not the prompt prefill."""
+    def __init__(self, inner, vec, gen_only=False):
         super().__init__()
         self.inner = inner
         self.is_linear = inner.is_linear
         self.vec = vec
+        self.gen_only = gen_only
 
     def __call__(self, x, mask=None, cache=None):
         out = self.inner(x, mask, cache)
+        if self.gen_only and x.shape[1] > 1:
+            return out
         return out + self.vec.astype(out.dtype)
 
 
