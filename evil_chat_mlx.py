@@ -13,6 +13,8 @@ In-chat commands:
     /sys <text>                     set a system prompt
     /vector warm.npz 0.5 [layer]    add a persona vector built by build_vector.py (dose; layer optional)
     /vector off                     remove the persona vector
+    /refusal <dose> [layer]          signed refusal vector (+ more, - less); disables neurons, clears history
+    /refusal off                    clear the current vector (same slot as /vector)
     /reset                          clear history
     /quit
 
@@ -20,6 +22,7 @@ Recipe (lyra, @_lyraaaa_): add c = dose * median(||resid leaving layer L||, toke
 to input n of layer L's mlp.down_proj at every token.
 """
 import argparse, sys
+from pathlib import Path
 import numpy as np
 import mlx.core as mx
 import mlx.nn as nn
@@ -121,17 +124,36 @@ class Steerer:
                 self.layers[i] = layer.inner
 
     def apply_vector(self, path, dose, layer=None):
-        self.clear_vector()
+        if not np.isfinite(dose):
+            raise ValueError("dose must be finite")
         if dose == 0:
+            self.clear_vector()
             print("[vector off]")
             return
-        z = np.load(path)
-        L = int(z["best"]) if layer is None else layer
-        d = z["diff"][L]
-        unit = d / (np.linalg.norm(d) + 1e-8)
-        c = dose * float(z["medians"][L])
+        with np.load(path, allow_pickle=False) as z:
+            L = int(z["best"]) if layer is None else layer
+            if not 0 <= L < len(self.layers):
+                raise ValueError(f"layer must be between 0 and {len(self.layers) - 1}")
+            d = z["diff"][L]
+            target = self.layers[L]
+            while isinstance(target, AddVector):
+                target = target.inner
+            down = target.mlp.down_proj
+            if isinstance(down, SteeredDown):
+                down = down.inner
+            if d.shape != (down.weight.shape[0],):
+                raise ValueError("vector hidden size does not match the model")
+            norm = np.linalg.norm(d)
+            if not np.isfinite(d).all() or norm < 1e-8:
+                raise ValueError("vector must be finite and nonzero")
+            unit = d / norm
+            c = dose * float(z["medians"][L])
+            if not np.isfinite(c) or float(z["medians"][L]) <= 0:
+                raise ValueError("invalid residual norm")
+        # Validate before replacing a currently working vector.
+        self.clear_vector()
         self.layers[L] = AddVector(self.layers[L], mx.array(unit * c, dtype=mx.float32))
-        print(f"[vector {path} @L{L} dose={dose:+.2f} -> ||v||={c:.2f}]")
+        print(f"[vector {path} @L{L} dose={dose:+.2f} -> ||v||={abs(c):.2f}]")
 
     def clear(self):
         for layer in self.layers:
@@ -168,15 +190,30 @@ def main():
     ap.add_argument("--model", default="mlx-community/Qwen3.5-4B-MLX-4bit")
     ap.add_argument("--steer", nargs="*", default=["14:8949:+1", "13:7956:-1"])
     ap.add_argument("--dose", type=float, default=1.0)
+    ap.add_argument("--refusal", type=float, help="start with signed refusal steering and neurons off")
     ap.add_argument("--max_tokens", type=int, default=400)
     args = ap.parse_args()
 
     print(f"loading {args.model}...")
     model, tokenizer = load(args.model)
     steer = [parse_steer(s) for s in args.steer]
-    scale, thinking, system, history = args.dose, False, None, []
+    scale, thinking, system, history = (0.0 if args.refusal is not None else args.dose), False, None, []
     st = Steerer(model, tokenizer)
     st.apply(steer, scale)
+    refusal_path = Path(__file__).with_name("refusal.npz")
+
+    def set_refusal(dose, layer=None):
+        if dose:
+            with np.load(refusal_path, allow_pickle=False) as z:
+                if str(z["model"]) != args.model:
+                    raise ValueError(f"refusal vector was built for {z['model']}; rebuild with --model {args.model}")
+        st.apply_vector(refusal_path, dose, layer)
+
+    if args.refusal is not None:
+        try:
+            set_refusal(args.refusal)
+        except (OSError, ValueError, KeyError, IndexError) as e:
+            ap.error(f"{e}; build with: python build_refusal.py --model {args.model}")
     sampler = make_sampler(temp=0.7, top_p=0.9)
     procs = make_logits_processors(repetition_penalty=1.1)
     print("ready. /help for commands.\n")
@@ -208,6 +245,22 @@ def main():
                 else:
                     st.apply_vector(parts[0], float(parts[1]) if len(parts) > 1 else 0.5,
                                     int(parts[2]) if len(parts) > 2 else None)
+            elif cmd == "/refusal":
+                parts = arg.split()
+                if not 1 <= len(parts) <= 2:
+                    print("usage: /refusal <signed dose|off> [layer]; + more refusal, - less")
+                    continue
+                try:
+                    dose = 0.0 if parts[0] == "off" else float(parts[0])
+                    layer = int(parts[1]) if len(parts) == 2 else None
+                    set_refusal(dose, layer)
+                except (OSError, ValueError, KeyError, IndexError) as e:
+                    print(f"[refusal: {e}; build with python build_refusal.py --model {args.model}]")
+                    continue
+                scale = 0.0
+                st.apply(steer, scale)
+                history = []
+                print("[refusal: neurons off; history cleared; shares the /vector slot]")
             elif cmd == "/sys":
                 system = arg or None; print("[system prompt set]" if system else "[system prompt cleared]")
             elif cmd == "/reset":

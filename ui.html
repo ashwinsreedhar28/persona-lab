@@ -112,7 +112,8 @@ async function init() {
   box.innerHTML = vectors.map(v => `
     <div style="margin-bottom:12px">
       <label title="${(v.description||'').replace(/"/g,'&quot;')}"><span>${v.kind==='persona' ? 'persona' : 'vector'} · ${v.name} ${v.kind==='persona' ? `<span class="tiny">(L${v.layers[0]}+L${v.layers[1]})</span>` : `<span class="tiny">L</span><input type="number" id="l_${v.name}" value="${v.layer}" min="0" max="${v.n_layers-1}" style="width:46px;padding:2px 4px;margin-left:2px" title="layer (auto-picked ${v.layer})">`}</span><b id="v_${v.name}_v">0.00</b></label>
-      <input type="range" id="v_${v.name}" min="0" max="1.2" step="0.05" value="0" oninput="sync()">
+      <input type="range" id="v_${v.name}" min="${v.kind==='refusal' ? '-1.2' : '0'}" max="1.2" step="0.05" value="0" oninput="sync()">
+      ${v.kind==='refusal' ? '<div class="tiny">− less refusal · + more refusal · reset chat when comparing</div>' : ''}
     </div>`).join('');
   if (!vectors.length) box.innerHTML = '<div class="tiny">no .npz vectors found — run build_vector.py</div>';
   sync();

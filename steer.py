@@ -16,8 +16,9 @@ def base(layer):
 
 
 class MultiSteerer:
-    def __init__(self, model, tok):
+    def __init__(self, model, tok, model_id=None):
         self.model, self.tok = model, tok
+        self.model_id = model_id
         self.layers = model.language_model.model.layers
         self.med_cache, self.vec_cache = {}, {}
         self.width = None
@@ -54,6 +55,10 @@ class MultiSteerer:
         """Returns a list of components [(layer, unit_direction, weight, median_norm)]."""
         if name not in self.vec_cache:
             z = np.load(os.path.join(HERE, name + ".npz"))
+            if "kind" in z and str(z["kind"]) == "refusal" and self.model_id is not None:
+                if str(z["model"]) != self.model_id:
+                    z.close()
+                    raise ValueError(f"refusal vector model mismatch; rebuild with --model {self.model_id}")
             med = z["medians"]
             def unit(d): return d / (np.linalg.norm(d) + 1e-8)
             if "kind" in z and str(z["kind"]) == "persona":

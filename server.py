@@ -21,7 +21,7 @@ from mtp import load_mtp_head
 MODEL = os.environ.get("MODEL", "mlx-community/Qwen3.5-4B-MLX-4bit")
 print(f"loading {MODEL}...")
 model, tokenizer = load(MODEL)
-st = MultiSteerer(model, tokenizer)
+st = MultiSteerer(model, tokenizer, model_id=MODEL)
 mtp = None                                    # loaded on first speculative request
 app = FastAPI()
 
@@ -86,7 +86,7 @@ def list_vectors():
             out.append({"name": name, "kind": "persona", "layers": [int(z["best_role"]), int(z["best_spec"])],
                         "description": str(z["description"]), "twin": str(z["twin"])})
         else:
-            out.append({"name": name, "kind": "single", "layer": int(z["best"]), "n_layers": int(len(z["diff"])),
+            out.append({"name": name, "kind": str(z["kind"]) if "kind" in z else "single", "layer": int(z["best"]), "n_layers": int(len(z["diff"])),
                         "scores": [round(float(x), 2) for x in z["score"]],
                         "description": str(z["pos"]) if "pos" in z else ""})
     return out

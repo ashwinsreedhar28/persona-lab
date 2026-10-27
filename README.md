@@ -20,6 +20,85 @@ First run downloads `mlx-community/Qwen3.5-4B-MLX-4bit` (~2.5 GB). ~55 tok/s on 
 
 Prefer a terminal? `python evil_chat_mlx.py` gives the same controls as slash commands (`/dose`, `/vector`, `/sys`, `/think`, `/reset`).
 
+## Refusal direction
+
+`refusal.npz` is a separate, signed activation direction for
+`mlx-community/Qwen3.5-4B-MLX-4bit`, with thinking off. Positive doses increase
+refusal; negative doses subtract the direction. The existing evil vector and
+neuron pair measure hostility and are not evidence of refusal suppression.
+
+Build the artifact and its evaluation report with the Python environment that
+has MLX installed:
+
+```sh
+python build_refusal.py
+python evil_chat_mlx.py --refusal -0.6
+```
+
+In the terminal, `/refusal -0.6` subtracts refusal, `/refusal 0.6` adds it,
+and `/refusal off` removes the vector. An optional second argument overrides
+the layer: `/refusal -0.6 12`. The command disables neuron steering and clears
+history for a fresh comparison; it uses the same vector slot as `/vector`.
+An existing `/sys` prompt still applies. `--refusal` also starts with neurons
+off. If using another checkpoint or quantization, rebuild with `--model`.
+
+The web UI discovers the artifact automatically and gives it a signed slider.
+Use the **Normal** preset first, keep thinking and response-only steering off,
+then adjust refusal. Reset chat between comparisons. Other persona vectors can
+be stacked in the UI, but the evaluation measures refusal steering alone.
+
+The builder checks natural refusals on matched wrongdoing/benign requests,
+records the **last prompt token** at every decoder layer, and computes
+`mean(refused requests) - mean(benign requests)`. It tests both signs at several
+layers and doses on a separate validation split, then evaluates the chosen
+setting on a test split excluded from extraction and parameter selection. This adapts the difference-of-means
+approach of [Arditi et al.](https://arxiv.org/abs/2406.11717); it is not a full
+reproduction of their experiments. Selection uses the unsteered model to judge
+refusal versus compliance versus unclear behavior, with a repetition penalty.
+Warnings and legitimate alternatives count as refusal even without "I cannot".
+Only nonrepetitive compliance counts toward successful negative steering.
+
+The injection is `h[L] += dose * medians[L] * unit(diff[L])`, at every token,
+with **zero-based layer indices**. Negative addition at one layer is different
+from projecting out a direction at every layer. Model weights are unchanged.
+The NPZ includes all layer differences, the selected unit `direction`, `best`
+layer, `recommended_dose` magnitude, calibration norms, and model identity.
+`refusal.eval.json` contains prompts, outputs, validation trials, and held-out
+results. The model judge is fallible and sees only short greedy answers; the
+report retains the text and lexical flags for inspection. This does not
+establish general capability preservation or universal refusal removal. The
+dataset is small and manually written. Test outputs were inspected while
+debugging the initial lexical metric, so this is not a blind benchmark.
+
+Review finding: a lexical-only metric selected layer 24 and claimed complete
+refusal suppression. Reading the outputs showed warnings and redirection with
+different wording, plus repetition at positive doses. The final builder uses
+behavior judging and repetition checks to avoid selecting that failure mode.
+`python build_refusal.py --rescore` reuses saved extraction and validation
+responses, reruns judging and selection, and generates fresh test responses.
+
+The included artifact uses **layer 16 (zero-based), dose ±0.6**, and a
+2,560-dimensional unit direction, extracted from 19 confirmed training pairs.
+Among tied validation scores, selection favors compliance on previously refused
+requests. Manual inspection of the six test pairs found:
+
+| dose | wrongdoing requests | benign requests |
+|---|---|---|
+| 0 | 6 refusals | 6 helpful openings |
+| +0.6 | 6 refusals | 2 refusals, 4 helpful openings |
+| −0.6 | 5 attempted-compliance openings, 1 ambiguous excerpt | 5 helpful openings, 1 incomplete arithmetic answer |
+
+These are **64-token prefixes**, not evidence of complete task success. The
+same-model judge mislabeled several negative-steering outputs as refusals; the
+saved report includes a separate `manual_review` with those corrections. No
+obvious repetition loops appeared in these final samples. Results were obtained
+with MLX 0.32.4 and mlx-lm 0.32.2; this is an experimental control, not a universal
+refusal-removal switch.
+
+```sh
+python -m unittest -v test_refusal
+```
+
 ## Two kinds of steering
 
 **Neuron steering** (lyra's recipe, `--dose` / the neuron slider). For neuron *n* in layer *L*, add
