@@ -3,7 +3,7 @@
 persona-lab steers Qwen3.5-4B with MLX on an M1 Pro MacBook Pro (16 GB RAM). Current work: refusal-direction abliteration (Arditi et al. 2024, arXiv 2406.11717). The plan, done bar and step list live in abl/PLAN.md. Read it before doing anything.
 
 ## Hard rules
-- Phase A only: local, $0. Never create Runpod pods or endpoints, never spend credits. Phase B (Kimi Linear) runs later from a separate session.
+- Phase A sessions (abl/): local, $0, never touch Runpod. Phase B (Kimi Linear, kimi/) is a separate session with its own rules in kimi/CLAUDE.md; Phase A sessions don't touch kimi/.
 - Commit locally with clear messages. Never push, never open PRs, never upload anything to Hugging Face.
 - Never print completions to harmful prompts into the transcript, and never commit them. Report aggregate metrics and per-prompt refusal labels only. Raw generations go in abl/out/ (gitignored).
 - Edited and converted weights go in models/ (gitignored).

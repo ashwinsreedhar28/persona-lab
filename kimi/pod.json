@@ -1,0 +1,14 @@
+{
+  "id": "7vq6rquv9uchvw",
+  "name": "persona-lab-kimi-phaseB",
+  "created_utc": "2026-10-29T13:24:01Z",
+  "cost_per_hr_usd": 5.29,
+  "gpu": "NVIDIA H200 (H200 SXM) x1",
+  "cloud": "SECURE, on-demand",
+  "datacenter": "US-NC-1",
+  "image": "runpod/pytorch:1.4.1-cu1281-torch2130-ubuntu2404",
+  "template_id": "ws7snkoq6q",
+  "container_disk_gb": 50,
+  "volume_gb": 250,
+  "volume_mount": "/workspace"
+}

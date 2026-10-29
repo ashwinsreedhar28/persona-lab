@@ -11,7 +11,7 @@ def main():
     out = dict(variants={}, notes=[])
     base_gsm = None
     p = OUT / "gen" / "base" / "summary.json"
-    if p.exists():
+    if p.exists() and "gsm8k" in read_json(p):
         base_gsm = np.array(read_json(p)["gsm8k"]["correct"])
     for v in GEN_ROWS:
         p = OUT / "gen" / v / "summary.json"

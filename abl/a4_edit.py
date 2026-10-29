@@ -9,6 +9,7 @@ models/Qwen3.5-4B-abliterated (bf16, HF key layout, loadable with mlx_lm.load).
 Math runs in fp32 on the bf16 checkpoint and is cast back to bf16. mtp.* is not saved (mlx_lm never loads it).
 """
 import argparse
+import hashlib
 import json
 import re
 import shutil
@@ -102,13 +103,16 @@ def main():
     for f in src.iterdir():
         if f.suffix in (".json", ".txt", ".jinja") and f.name not in ("config.json", "model.safetensors.index.json"):
             shutil.copy(f, args.out / f.name)
-    meta = dict(source=BASE_ID, r_hat=str(args.r_hat), edited_tensors=len(edited), writer_matrices=n_layers_w,
+    meta = dict(source=BASE_ID, r_hat=str(args.r_hat),
+                r_hat_sha256=hashlib.sha256(np.load(args.r_hat).tobytes()).hexdigest(), out=str(args.out),
+                edited_tensors=len(edited), writer_matrices=n_layers_w,
                 embed_edited=EMBED in edited, merger_edited=[MERGER_W in edited, MERGER_B in edited],
                 lm_head="untied, unedited copy of the original embedding" if args.untie
                 else "tied to the edited embedding (unembedding edited too)", mtp="not saved",
                 precision="bf16 in, fp32 math, bf16 out", size_gb=round(total / 1e9, 2),
                 peak_ram=peak_ram_gb(), seconds=round(time.time() - t0, 1))
     write_json(OUT / "edit.json", meta)
+    write_json(args.out / "abl_edit.json", meta)   # travels with the weights: which r-hat this folder holds
     print(json.dumps(meta))
 
 
