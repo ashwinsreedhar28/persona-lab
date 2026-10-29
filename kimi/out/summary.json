@@ -1,0 +1,49 @@
+{
+  "writers": {
+    "n": 6711,
+    "by_kind": {
+      "embed": 1,
+      "attn_o": 27,
+      "dense_down": 1,
+      "expert_w2": 6656,
+      "shared_down": 26
+    },
+    "scan_match": true,
+    "bias": false,
+    "tied": false,
+    "method_check_kl": {
+      "mean": 0.005814726930111647,
+      "max": 0.03775986284017563
+    }
+  },
+  "selected": {
+    "layer": 11,
+    "pos": -4,
+    "norm": 16.160886764526367,
+    "auroc": 1.0,
+    "induce": 11.640581705717036,
+    "kl": 0.06156039983034134,
+    "passes": true
+  },
+  "refusal_tokens": [
+    "I"
+  ],
+  "max_ratio_full_val": 0.005833901167116402,
+  "max_ratio_noshared_val": 0.6950143765955773,
+  "kl_mean": {
+    "noshared": 0.06952007114887238,
+    "full": 0.07888771593570709
+  },
+  "equivalence_kl": {
+    "set": "harmless_val (32)",
+    "mean": 0.002886847360059619,
+    "max": 0.01797495037317276
+  },
+  "attribution_pos_diff_totals": {
+    "embed": 1.862645149230957e-09,
+    "attn": -0.4796845279633999,
+    "dense_l0": 0.0031827297061681747,
+    "routed": 15.129576894454658,
+    "shared": 0.6506108487956226
+  }
+}

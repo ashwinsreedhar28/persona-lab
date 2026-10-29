@@ -1,14 +1,48 @@
 {
-  "id": "7vq6rquv9uchvw",
-  "name": "persona-lab-kimi-phaseB",
-  "created_utc": "2026-10-29T13:24:01Z",
+  "id": "dkyxi1edbksmwm",
+  "name": "persona-lab-kimi-measure",
+  "created_utc": "2026-10-29T19:25:59Z",
   "cost_per_hr_usd": 5.29,
   "gpu": "NVIDIA H200 (H200 SXM) x1",
   "cloud": "SECURE, on-demand",
   "datacenter": "US-NC-1",
+  "machine_id": "ahk97g873fjn",
   "image": "runpod/pytorch:1.4.1-cu1281-torch2130-ubuntu2404",
   "template_id": "ws7snkoq6q",
   "container_disk_gb": 50,
-  "volume_gb": 250,
-  "volume_mount": "/workspace"
+  "volume_gb": 150,
+  "volume_mount": "/workspace",
+  "created_by": "kimi/scripts/watch_capacity.sh (first H200 sighting outside EUR-IS-4, 19:25:58 UTC)",
+  "reachable_utc": "2026-10-29T19:26:32Z",
+  "ssh": "public IP + mapped port 22 (no secrets stored)",
+  "runaway_guard": "in-pod watchdog started (in-pod `runpodctl get pod` was Unauthorized, so a Mac-side REST stop at 3 h was added; cancelled after termination). In-pod `runpodctl remove pod` worked.",
+  "previous_pods": [
+    {
+      "id": "7vq6rquv9uchvw",
+      "created_utc": "2026-10-29T13:24:01Z",
+      "terminated_utc": "2026-10-29T13:27:51Z",
+      "pod_hours": 0.064,
+      "spend_usd": 0.34
+    },
+    {
+      "id": "nh68mfc25kvlii",
+      "created_utc": "2026-10-29T18:01:00Z",
+      "terminated_utc": "2026-10-29T18:19:40Z",
+      "pod_hours": 0.311,
+      "spend_usd": 1.65
+    },
+    {
+      "id": "ipc50ostzggf56",
+      "datacenter": "EUR-IS-4",
+      "created_utc": "2026-10-29T18:42:22Z",
+      "terminated_utc": "2026-10-29T19:05:42Z",
+      "pod_hours": 0.389,
+      "spend_usd": 2.06
+    }
+  ],
+  "terminated_utc": "2026-10-29T19:45:03Z",
+  "termination": "in-pod `runpodctl remove pod dkyxi1edbksmwm` -> pod \"dkyxi1edbksmwm\" removed; REST GET -> 404",
+  "pod_hours": 0.318,
+  "spend_usd": 1.68,
+  "total_spend_all_pods_usd": 5.72
 }

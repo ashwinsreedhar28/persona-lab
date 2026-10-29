@@ -1,0 +1,25 @@
+19:26:42 START
+19:31:37 OK setup + python3 -c 'import torch, transformers, fla; print('\''hf env: torch'\'', torch.__version__, '\''transformers'\'', transformers.__version__, '\''fla'\'', fla.__version__, '\''cuda'\'', torch.cuda.is
+19:31:43 FAIL c0
+19:33:03 START
+19:33:05 OK setup + python3 -c 'import torch, transformers, fla; print('\''hf env: torch'\'', torch.__version__, '\''transformers'\'', transformers.__version__, '\''fla'\'', fla.__version__, '\''cuda'\'', torch.cuda.is
+19:33:11 FAIL c0
+--- restart after auto_docstring fix
+19:34:52 START
+19:34:55 OK setup + python3 -c 'import torch, transformers, fla; print('\''hf env: torch'\'', torch.__version__, '\''transformers'\'', transformers.__version__, '\''fla'\'', fla.__version__, '\''cuda'\'', torch.cuda.is
+19:35:41 FAIL c0
+--- restart after fla-core 0.4.x pin
+19:36:40 START
+19:36:42 OK setup + python3 -c 'import torch, transformers, fla; print('\''hf env: torch'\'', torch.__version__, '\''transformers'\'', transformers.__version__, '\''fla'\'', fla.__version__, '\''cuda'\'', torch.cuda.is
+19:37:21 FAIL c0
+--- restart after fla-core==0.4.0 pin
+19:38:08 START
+19:38:11 OK setup + python3 -c 'import torch, transformers, fla; print('\''hf env: torch'\'', torch.__version__, '\''transformers'\'', transformers.__version__, '\''fla'\'', fla.__version__, '\''cuda'\'', torch.cuda.is
+19:38:58 FAIL c0
+--- restart after sdpa switch
+19:40:19 START
+19:40:21 OK setup + python3 -c 'import torch, transformers, fla; print('\''hf env: torch'\'', torch.__version__, '\''transformers'\'', transformers.__version__, '\''fla'\'', fla.__version__, '\''cuda'\'', torch.cuda.is
+19:40:54 OK c0
+19:42:32 OK c1-c4
+19:42:32 OK guard
+19:42:32 DONE

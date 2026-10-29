@@ -8,3 +8,6 @@ abl/data/
 models/
 .venv-heretic/
 *.safetensors
+
+# Phase B bookkeeping files
+kimi/.*.txt

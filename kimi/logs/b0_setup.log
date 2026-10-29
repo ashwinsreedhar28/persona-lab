@@ -1,0 +1,44 @@
++ W=/workspace
++ export HF_HOME=/workspace/hf HF_HUB_ENABLE_HF_TRANSFER=1 HF_XET_HIGH_PERFORMANCE=1 PIP_ROOT_USER_ACTION=ignore
++ HF_HOME=/workspace/hf
++ HF_HUB_ENABLE_HF_TRANSFER=1
++ HF_XET_HIGH_PERFORMANCE=1
++ PIP_ROOT_USER_ACTION=ignore
++ mkdir -p /workspace/logs /workspace/models /workspace/out /workspace/work /workspace/data
++ PKGS='transformers==4.57.1 accelerate fla-core>=0.4.0 einops tiktoken blobfile sentencepiece protobuf hf_transfer huggingface_hub[cli] safetensors numpy'
++ python3 -m pip install -q transformers==4.57.1 accelerate 'fla-core>=0.4.0' einops tiktoken blobfile sentencepiece protobuf hf_transfer 'huggingface_hub[cli]' safetensors numpy
+error: externally-managed-environment
+
+× This environment is externally managed
+╰─> To install Python packages system-wide, try apt install
+    python3-xyz, where xyz is the package you are trying to
+    install.
+    
+    If you wish to install a non-Debian-packaged Python package,
+    create a virtual environment using python3 -m venv path/to/venv.
+    Then use path/to/venv/bin/python and path/to/venv/bin/pip. Make
+    sure you have python3-full installed.
+    
+    If you wish to install a non-Debian packaged Python application,
+    it may be easiest to use pipx install xyz, which will manage a
+    virtual environment for you. Make sure you have pipx installed.
+    
+    See /usr/share/doc/python3.12/README.venv for more information.
+
+note: If you believe this is a mistake, please contact your Python installation or OS distribution provider. You can override this, at the risk of breaking your Python installation or OS, by passing --break-system-packages.
+hint: See PEP 668 for the detailed specification.
++ python3 -m pip install -q --break-system-packages transformers==4.57.1 accelerate 'fla-core>=0.4.0' einops tiktoken blobfile sentencepiece protobuf hf_transfer 'huggingface_hub[cli]' safetensors numpy
++ python3 -c 'import torch, transformers, fla; print('\''hf env: torch'\'', torch.__version__, '\''transformers'\'', transformers.__version__, '\''fla'\'', fla.__version__, '\''cuda'\'', torch.cuda.is_available(), torch.cuda.get_device_name(0))'
+hf env: torch 2.13.0+cu129 transformers 4.57.1 fla 0.6.0 cuda True NVIDIA H200
++ echo HF_ENV_DONE
+HF_ENV_DONE
+++ date +%s
++ t=1793302019
++ hf download moonshotai/Kimi-Linear-48B-A3B-Instruct --local-dir /workspace/models/kimi-linear
+++ date +%s
++ echo 'KIMI_DL_EXIT=0 seconds=278'
+KIMI_DL_EXIT=0 seconds=278
++ du -sh /workspace/models/kimi-linear
+92G	/workspace/models/kimi-linear
++ echo B0_SETUP_DONE
+B0_SETUP_DONE

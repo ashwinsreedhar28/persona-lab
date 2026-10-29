@@ -84,6 +84,18 @@ python sweep.py --neurons              # same for the neuron pair
 
 **Neuron vs vector, same prompt, same dose axis.** Both reach the persona at ~0.7. The neuron pair collapses at 0.9 (distinct-token ratio 0.18) and by 1.4 the judge reads hostility 0 because the output is "to be yourself, to be yourself". The evil vector holds coherence through 1.1 ("You are inquiring about the nature of my existence"), then switches to Chinese horror prose at 1.2 and loops from 1.3. The vector keeps the model's language for 40% more headroom, and it degrades *into* the persona rather than out of it.
 
+## The refusal direction in a hybrid MoE (Kimi Linear 48B, measurement only)
+
+`kimi/` takes the refusal-direction method to [Kimi-Linear-48B-A3B-Instruct](https://huggingface.co/moonshotai/Kimi-Linear-48B-A3B-Instruct): 27 layers (20 Kimi Delta Attention + 7 MLA), and in each MoE layer 256 routed experts plus one shared expert. The question is whether the method carries over to that architecture and where the direction lives. Forward passes only, on one H200 for about 20 minutes: no text generation, no saved weights, and no direction tensors left the pod. `kimi/out/` holds aggregate numbers only.
+
+- **Writers.** 6,711 matrices write into the residual stream: the embedding, 27 attention output projections, layer 0's dense MLP, 6,656 routed-expert and 26 shared-expert down-projections. A generic scan matches the structural list exactly, and an in-memory weight edit matches a run-time ablation hook to bf16 precision.
+- **The direction exists and is causal.** The harmful-minus-harmless difference of means at the `<|im_end|>` position separates harmful from harmless validation prompts perfectly (AUROC 1.0) from layer 5 on. Adding it at layer 11 raises the log-odds of an "I…" refusal opening on harmless prompts by 11.6. The selected layer sits at 42% of depth, the same relative depth as on Qwen3.5-4B.
+- **Routed experts write it.** At the selected position, routed experts contribute about 99% of the harmful-minus-harmless gap along the direction (+15.1 of 15.3); attention is net slightly negative and the shared experts add about 4%. It is concentrated: in each layer the top 10 of 256 experts hold 62–95% of the routed contribution, and at layer 7 a single expert holds 76%.
+- **Orthogonalizing every writer removes it mechanically.** At most 0.58% of the base projection remains at any layer, at a first-token KL of 0.079 on 100 held-out harmless prompts. Leaving the 26 shared experts unedited leaves about 30% of the raw projection, but since the shared experts barely write the harmful-vs-harmless difference, most of that remainder is common to both prompt sets.
+- **Not measured: behavior.** Nothing was generated, so this says nothing about how an edited model would act. Removing the direction from the activations and changing what the model says are different claims.
+
+Selection uses separation, a positive steering check and KL instead of Arditi et al.'s bypass score. Ties, limits and every number are in `kimi/RESULTS.md`.
+
 ## Speculative decoding: an experiment that lost
 
 [uzu](https://github.com/trymirai/uzu) gets Qwen3.5-9B from 25 to 92 tok/s on an M5 by verifying ~16 drafted tokens per forward pass. `spec_decode.py` reproduces the mechanism on mlx-lm: the model runs layer by layer with the sequence split into `[committed | drafts]`, linear-attention layers snapshot their recurrent state between chunks (mlx-lm's own `--draft-model` refuses Qwen3.5 because it can't trim that state), and the drafter is Qwen's bundled MTP head (`mtp.py` loads it from the bf16 checkpoint; mlx-lm drops it at conversion). `--check` confirms token-for-token agreement with plain decoding; the MTP head gets 45–55% acceptance.
@@ -103,6 +115,7 @@ It still loses, and `bench_forward.py` says why: on mlx-lm 0.32 / M1 Pro a 4-tok
 | `sweep.py` | dose sweep with hostility + degeneracy metrics → CSV + PNG |
 | `spec_decode.py`, `mtp.py`, `bench_forward.py` | the speculative-decoding experiment |
 | `torch/` | original transformers/PyTorch versions; CUDA, ~3 tok/s on MPS |
+| `kimi/` | Kimi Linear 48B refusal-direction measurements: pod scripts, aggregate results in `kimi/out/`, write-up in `kimi/RESULTS.md` |
 
 ## Caveats
 
