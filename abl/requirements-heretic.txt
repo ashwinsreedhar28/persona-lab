@@ -1,0 +1,5 @@
+# .venv-heretic only (Heretic is AGPL; installed, not vendored). python -m venv .venv-heretic && .venv-heretic/bin/pip install -r abl/requirements-heretic.txt
+heretic-llm==1.4.0
+# Qwen3.5 loads a Qwen2-VL image processor, which needs these two; heretic-llm does not pull them in.
+torchvision==0.29.2
+pillow==13.0.0

@@ -1,0 +1,927 @@
+{
+  "model": "Qwen/Qwen3.5-4B",
+  "precision": "bf16 (HF checkpoint loaded directly by mlx_lm, no quantization)",
+  "n_layers": 32,
+  "hidden_size": 2560,
+  "layer_types": [
+    "linear_attention",
+    "linear_attention",
+    "linear_attention",
+    "full_attention",
+    "linear_attention",
+    "linear_attention",
+    "linear_attention",
+    "full_attention",
+    "linear_attention",
+    "linear_attention",
+    "linear_attention",
+    "full_attention",
+    "linear_attention",
+    "linear_attention",
+    "linear_attention",
+    "full_attention",
+    "linear_attention",
+    "linear_attention",
+    "linear_attention",
+    "full_attention",
+    "linear_attention",
+    "linear_attention",
+    "linear_attention",
+    "full_attention",
+    "linear_attention",
+    "linear_attention",
+    "linear_attention",
+    "full_attention",
+    "linear_attention",
+    "linear_attention",
+    "linear_attention",
+    "full_attention"
+  ],
+  "layout_8_blocks_of_3_deltanet_plus_1_attention": true,
+  "n_deltanet": 24,
+  "n_attention": 8,
+  "writers": [
+    {
+      "module": "embed_tokens",
+      "kind": "Embedding",
+      "weight_shape": [
+        248320,
+        2560
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "rows of E (d_model)"
+    },
+    {
+      "module": "layers.0.linear_attn.out_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.0.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.1.linear_attn.out_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.1.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.2.linear_attn.out_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.2.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.3.self_attn.o_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.3.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.4.linear_attn.out_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.4.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.5.linear_attn.out_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.5.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.6.linear_attn.out_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.6.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.7.self_attn.o_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.7.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.8.linear_attn.out_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.8.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.9.linear_attn.out_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.9.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.10.linear_attn.out_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.10.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.11.self_attn.o_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.11.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.12.linear_attn.out_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.12.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.13.linear_attn.out_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.13.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.14.linear_attn.out_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.14.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.15.self_attn.o_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.15.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.16.linear_attn.out_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.16.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.17.linear_attn.out_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.17.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.18.linear_attn.out_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.18.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.19.self_attn.o_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.19.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.20.linear_attn.out_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.20.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.21.linear_attn.out_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.21.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.22.linear_attn.out_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.22.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.23.self_attn.o_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.23.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.24.linear_attn.out_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.24.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.25.linear_attn.out_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.25.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.26.linear_attn.out_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.26.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.27.self_attn.o_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.27.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.28.linear_attn.out_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.28.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.29.linear_attn.out_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.29.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.30.linear_attn.out_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.30.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.31.self_attn.o_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        4096
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    },
+    {
+      "module": "layers.31.mlp.down_proj",
+      "kind": "Linear",
+      "weight_shape": [
+        2560,
+        9216
+      ],
+      "dtype": "mlx.core.bfloat16",
+      "has_bias": false,
+      "writes": "out_features = d_model"
+    }
+  ],
+  "n_writers": 65,
+  "biases": "none in the loaded text model (attention_bias=false, no bias on out_proj/o_proj/down_proj)",
+  "unlisted_d_model_linears": [],
+  "tied_embeddings": {
+    "tied": true,
+    "note": "lm_head is tied to embed_tokens (as_linear). Editing E in place would also edit the unembedding.",
+    "choice": "edit E in place and keep it tied, so the unembedding is edited too (the plan's E <- E - E r r^T). An untied save (unedited lm_head copy) was tried first: held-out first-token KL 0.064, but the extra 1.3 GB made batched generation run out of GPU memory on this 16 GB machine."
+  },
+  "vision_merger": {
+    "loaded_by_mlx_lm": false,
+    "final_linear": "model.visual.merger.linear_fc2 (writes image tokens into the residual stream)",
+    "tensors": {
+      "model.visual.merger.linear_fc1.bias": {
+        "shape": [
+          4096
+        ],
+        "dtype": "BF16"
+      },
+      "model.visual.merger.linear_fc1.weight": {
+        "shape": [
+          4096,
+          4096
+        ],
+        "dtype": "BF16"
+      },
+      "model.visual.merger.linear_fc2.bias": {
+        "shape": [
+          2560
+        ],
+        "dtype": "BF16"
+      },
+      "model.visual.merger.linear_fc2.weight": {
+        "shape": [
+          2560,
+          4096
+        ],
+        "dtype": "BF16"
+      },
+      "model.visual.merger.norm.bias": {
+        "shape": [
+          1024
+        ],
+        "dtype": "BF16"
+      },
+      "model.visual.merger.norm.weight": {
+        "shape": [
+          1024
+        ],
+        "dtype": "BF16"
+      }
+    },
+    "choice": "mlx_lm drops model.visual.* on load, so it plays no part in text eval. The edit still projects linear_fc2 weight and bias, and the vision tower is saved alongside the text weights (mlx_lm ignores those keys on load)."
+  },
+  "mtp_head": {
+    "loaded_by_mlx_lm": false,
+    "note": "mlx_lm sanitize() drops every mtp.* key. The MTP head only drafts tokens for speculative decoding and is not saved in the edited model.",
+    "tensors": {
+      "mtp.layers.0.mlp.down_proj.weight": {
+        "shape": [
+          2560,
+          9216
+        ],
+        "dtype": "BF16"
+      },
+      "mtp.layers.0.mlp.gate_proj.weight": {
+        "shape": [
+          9216,
+          2560
+        ],
+        "dtype": "BF16"
+      },
+      "mtp.layers.0.mlp.up_proj.weight": {
+        "shape": [
+          9216,
+          2560
+        ],
+        "dtype": "BF16"
+      },
+      "mtp.fc.weight": {
+        "shape": [
+          2560,
+          5120
+        ],
+        "dtype": "BF16"
+      },
+      "mtp.layers.0.input_layernorm.weight": {
+        "shape": [
+          2560
+        ],
+        "dtype": "BF16"
+      },
+      "mtp.layers.0.post_attention_layernorm.weight": {
+        "shape": [
+          2560
+        ],
+        "dtype": "BF16"
+      },
+      "mtp.layers.0.self_attn.k_norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "BF16"
+      },
+      "mtp.layers.0.self_attn.k_proj.weight": {
+        "shape": [
+          1024,
+          2560
+        ],
+        "dtype": "BF16"
+      },
+      "mtp.layers.0.self_attn.o_proj.weight": {
+        "shape": [
+          2560,
+          4096
+        ],
+        "dtype": "BF16"
+      },
+      "mtp.layers.0.self_attn.q_norm.weight": {
+        "shape": [
+          256
+        ],
+        "dtype": "BF16"
+      },
+      "mtp.layers.0.self_attn.q_proj.weight": {
+        "shape": [
+          8192,
+          2560
+        ],
+        "dtype": "BF16"
+      },
+      "mtp.layers.0.self_attn.v_proj.weight": {
+        "shape": [
+          1024,
+          2560
+        ],
+        "dtype": "BF16"
+      },
+      "mtp.norm.weight": {
+        "shape": [
+          2560
+        ],
+        "dtype": "BF16"
+      },
+      "mtp.pre_fc_norm_embedding.weight": {
+        "shape": [
+          2560
+        ],
+        "dtype": "BF16"
+      },
+      "mtp.pre_fc_norm_hidden.weight": {
+        "shape": [
+          2560
+        ],
+        "dtype": "BF16"
+      }
+    }
+  },
+  "hf_checkpoint": {
+    "path": "/Users/ashwinsreedhar/.cache/huggingface/hub/models--Qwen--Qwen3.5-4B/snapshots/851bf6e806efd8d0a36b00ddf55e13ccb7b8cd0a",
+    "total_tensors": 738,
+    "config_tie_word_embeddings": true
+  },
+  "peak_ram": {
+    "process_max_rss_gb": 4.62,
+    "mlx_peak_gb": 8.46
+  },
+  "seconds": 10.2
+}

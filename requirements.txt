@@ -2,3 +2,5 @@ mlx-lm>=0.32
 fastapi
 uvicorn
 numpy
+pandas
+pyarrow

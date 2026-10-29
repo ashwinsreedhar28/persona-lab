@@ -1,0 +1,21 @@
+# persona-lab: rules for Claude Code sessions
+
+persona-lab steers Qwen3.5-4B with MLX on an M1 Pro MacBook Pro (16 GB RAM). Current work: refusal-direction abliteration (Arditi et al. 2024, arXiv 2406.11717). The plan, done bar and step list live in abl/PLAN.md. Read it before doing anything.
+
+## Hard rules
+- Phase A only: local, $0. Never create Runpod pods or endpoints, never spend credits. Phase B (Kimi Linear) runs later from a separate session.
+- Commit locally with clear messages. Never push, never open PRs, never upload anything to Hugging Face.
+- Never print completions to harmful prompts into the transcript, and never commit them. Report aggregate metrics and per-prompt refusal labels only. Raw generations go in abl/out/ (gitignored).
+- Edited and converted weights go in models/ (gitignored).
+- The safety classifier runs locally. No harmful prompts or completions go to any external API.
+- Never edit quantized weights. Compute r-hat and do the weight edit in bf16. Evaluate base and every variant at identical precision and identical generation settings.
+- 16 GB RAM: never hold two 4B+ models in memory at once. Generate first, free the model, then judge in a separate process.
+- Keep the existing steering CLI, UI and scripts working. Import from them; don't rewrite them.
+- Don't loosen the eval to pass. Thresholds in abl/check.py are copied from abl/PLAN.md and never change. Data splits are fixed once A1 writes them.
+- If a step fails 3 times the same way, stop and write the blocker into abl/RESULTS.md.
+- Long jobs (Heretic, GSM8K) run in the background with logs in abl/out/logs/. Check the logs; don't sit idle.
+
+## Conventions
+- Model names: Qwen3.5-4B-abliterated (ours), Qwen3.5-4B-heretic (Heretic baseline). Never call ours "heretic".
+- Use the Python env the existing scripts already run in (check `python -c "import mlx_lm"`). New deps go in requirements.txt; Heretic gets its own venv at .venv-heretic/ (AGPL tool, don't vendor its code).
+- Existing model access path: model.language_model.model.layers (multimodal wrapper). Existing hooks: AddVector, Recorder in evil_chat_mlx.py.

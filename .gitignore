@@ -3,3 +3,8 @@ __pycache__/
 .DS_Store
 sweep_*.csv
 _*.md
+abl/out/
+abl/data/
+models/
+.venv-heretic/
+*.safetensors
