@@ -21,4 +21,6 @@ class PilotChecks(unittest.TestCase):
         self.assertEqual(result['base_yes_edited_no'],1)
         self.assertEqual(result['base_no_edited_yes'],1)
         self.assertAlmostEqual(result['paired_standard_error_pp'],100/math.sqrt(3))
+        self.assertIsNone(paired([],[])['delta_percentage_points'])
+        with self.assertRaises(ValueError):paired([True],[])
 if __name__=='__main__':unittest.main()

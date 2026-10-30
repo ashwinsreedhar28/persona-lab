@@ -5,9 +5,16 @@ For each MLP layer, compute the cosine between every down_proj column W_down[:, 
 (the direction neuron n writes into the residual stream) and a persona vector's
 direction. Report where L14 N8949 and L13 N7956 rank, plus the global top hits.
 
-    python neuron_match.py evil.npz
-    python neuron_match.py evil.npz --layers 8 20
+    python tools/neuron_match.py evil.npz
+    python tools/neuron_match.py evil.npz --layers 8 20
 """
+
+from pathlib import Path as _Path
+import sys as _sys
+_ROOT = _Path(__file__).resolve().parents[1]
+if str(_ROOT) not in _sys.path:
+    _sys.path.insert(0, str(_ROOT))
+
 import argparse
 import numpy as np
 import mlx.core as mx, mlx.nn as nn

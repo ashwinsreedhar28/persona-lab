@@ -12,6 +12,13 @@ Architecture (from vLLM's qwen3_5_mtp.py):
     x = DecoderLayer_full_attention(x)      # own KV cache
     h = rmsnorm(x);  logits = lm_head(h)
 """
+
+from pathlib import Path as _Path
+import sys as _sys
+_ROOT = _Path(__file__).resolve().parents[1]
+if str(_ROOT) not in _sys.path:
+    _sys.path.insert(0, str(_ROOT))
+
 import os
 import mlx.core as mx
 import mlx.nn as nn

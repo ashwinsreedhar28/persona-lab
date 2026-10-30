@@ -4,7 +4,7 @@ Persona Lab — local web UI for neuron/vector steering on Qwen3.5-4B (MLX).
     pip install fastapi uvicorn
     python server.py            # then open http://127.0.0.1:8000
 
-Every .npz in this folder (built by build_vector.py or the UI) shows up as a slider.
+Every .npz in assets/vectors/ (built by tools/build_vector.py or the UI) shows up as a slider.
 """
 import glob, json, os, queue, threading, time
 import numpy as np
@@ -14,9 +14,10 @@ from pydantic import BaseModel
 from mlx_lm import load, stream_generate
 from mlx_lm.sample_utils import make_sampler, make_logits_processors
 from steer import MultiSteerer, HERE
-from build_vector import build as build_vector, build_persona
-from spec_decode import SpecDecoder
-from mtp import load_mtp_head
+from tools.paths import VECTOR_DIR, WEB_DIR
+from tools.build_vector import build as build_vector, build_persona
+from tools.spec_decode import SpecDecoder
+from tools.mtp import load_mtp_head
 
 MODEL = os.environ.get("MODEL", "mlx-community/Qwen3.5-4B-MLX-4bit")
 print(f"loading {MODEL}...")
@@ -79,7 +80,7 @@ class BuildReq(BaseModel):
 
 def list_vectors():
     out = []
-    for p in sorted(glob.glob(os.path.join(HERE, "*.npz"))):
+    for p in sorted(glob.glob(str(VECTOR_DIR / "*.npz"))):
         z = np.load(p)
         name = os.path.basename(p)[:-4]
         if "kind" in z and str(z["kind"]) == "persona":
@@ -106,10 +107,10 @@ def build(req: BuildReq):
         st.clear()                                   # record clean activations
         st.vec_cache.pop(name, None)
         if req.description.strip():
-            path, twin, br, bs = build_persona(model, tokenizer, req.description.strip(), name, HERE)
+            path, twin, br, bs = build_persona(model, tokenizer, req.description.strip(), name, str(VECTOR_DIR))
             out.put(("ok", {"name": name, "kind": "persona", "layers": [br, bs], "twin": twin}))
         else:
-            path, best, score = build_vector(model, tokenizer, req.pos, req.neg, name, HERE)
+            path, best, score = build_vector(model, tokenizer, req.pos, req.neg, name, str(VECTOR_DIR))
             out.put(("ok", {"name": name, "kind": "single", "layer": best}))
     for kind, payload in run_on_worker(job):
         if kind == "err":
@@ -180,7 +181,7 @@ def chat(req: ChatReq):
 
 @app.get("/", response_class=HTMLResponse)
 def index():
-    return open(os.path.join(HERE, "ui.html")).read()
+    return (WEB_DIR / "ui.html").read_text()
 
 
 if __name__ == "__main__":

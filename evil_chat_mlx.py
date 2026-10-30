@@ -11,7 +11,7 @@ In-chat commands:
     /steer 14:8949:+1 13:7956:-1    replace the neuron set (L:N:dose)
     /think on|off                   Qwen thinking mode (default off)
     /sys <text>                     set a system prompt
-    /vector warm.npz 0.5 [layer]    add a persona vector built by build_vector.py (dose; layer optional)
+    /vector warm.npz 0.5 [layer]    add a persona vector built by tools/build_vector.py (dose; layer optional)
     /vector off                     remove the persona vector
     /refusal <dose> [layer]          signed refusal vector (+ more, - less); disables neurons, clears history
     /refusal off                    clear the current vector (same slot as /vector)
@@ -23,6 +23,7 @@ to input n of layer L's mlp.down_proj at every token.
 """
 import argparse, sys
 from pathlib import Path
+from tools.paths import VECTOR_DIR, resolve_vector
 import numpy as np
 import mlx.core as mx
 import mlx.nn as nn
@@ -130,7 +131,7 @@ class Steerer:
             self.clear_vector()
             print("[vector off]")
             return
-        with np.load(path, allow_pickle=False) as z:
+        with np.load(resolve_vector(path), allow_pickle=False) as z:
             L = int(z["best"]) if layer is None else layer
             if not 0 <= L < len(self.layers):
                 raise ValueError(f"layer must be between 0 and {len(self.layers) - 1}")
@@ -201,7 +202,7 @@ def main():
     scale, thinking, system, history = (0.0 if args.refusal is not None else args.dose), False, None, []
     st = Steerer(model, tokenizer)
     st.apply(steer, scale)
-    refusal_path = Path(__file__).with_name("refusal.npz")
+    refusal_path = VECTOR_DIR / "refusal.npz"
 
     def set_refusal(dose, layer=None):
         if dose:

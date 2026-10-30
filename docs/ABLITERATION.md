@@ -133,7 +133,7 @@ cd /workspace/evil-qwen
 export HF_HOME=/workspace/hf
 python3 -m venv --without-pip --system-site-packages /workspace/venvs/abliteration
 PY=/workspace/venvs/abliteration/bin/python
-"$PY" -m pip install -r requirements-abliteration-cuda.txt
+"$PY" -m pip install -r requirements/cuda.txt
 "$PY" abliterate.py run --model moonshotai/Kimi-Linear-48B-A3B-Instruct \
   --trust-remote-code --data /workspace/evil-qwen/abl/data \
   --output /workspace/models/Kimi-Linear-48B-A3B-Instruct-abliterated
@@ -177,7 +177,7 @@ a clean reload nor one manual conversation establishes universal refusal removal
 ## Tests
 
 ```sh
-python -m unittest -v test_abliteration test_dense_abliteration test_kimi_compat test_research_checks test_interventions test_refusal test_cuda_chat
+python -m unittest -v tests.test_abliteration tests.test_dense_abliteration tests.test_kimi_compat tests.test_research_checks tests.test_interventions tests.test_refusal tests.test_cuda_chat
 ```
 
 The new tests cover a real tiny Qwen bf16 save/reload, preservation of originals, corruption rejection,
@@ -187,7 +187,7 @@ MLX tests require normal Metal access. Full-size runs and Kimi's CUDA kernels mu
 
 ## Publishing and upload-only cloud jobs
 
-The [cloud helpers](cloud/README.md) verify a completed checkpoint, preserve its original local files,
+The [cloud helpers](../cloud/README.md) verify a completed checkpoint, preserve its original local files,
 add reviewed upstream license assets and stream safetensors with modification notices in their headers.
 Tensor payloads are unchanged; public distribution hashes are recorded separately from source-export
 hashes. Public visibility is explicit. License bundles are restricted to reviewed source/model pairs.

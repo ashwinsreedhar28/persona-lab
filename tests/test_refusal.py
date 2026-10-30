@@ -1,6 +1,6 @@
 """Integration checks for the saved artifact and both existing steering loaders.
 
-Run after building refusal.npz: python -m unittest -v test_refusal
+Run after building refusal.npz: python -m unittest -v tests.test_refusal
 Uses tiny identity layers, not a second copy of the language model.
 """
 import contextlib
@@ -16,7 +16,7 @@ import numpy as np
 from evil_chat_mlx import Steerer
 from steer import MultiSteerer
 
-ARTIFACT = Path(__file__).with_name("refusal.npz")
+ARTIFACT = Path(__file__).resolve().parents[1] / "assets/vectors/refusal.npz"
 
 
 class IdentityLayer(nn.Module):

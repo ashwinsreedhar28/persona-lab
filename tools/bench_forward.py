@@ -1,9 +1,16 @@
 """How much does a forward pass cost as a function of tokens-per-pass?
 Speculative decoding only pays off if an L-token pass costs much less than L single-token passes.
 
-    python bench_forward.py                                        # 4-bit
-    python bench_forward.py --model mlx-community/Qwen3.5-4B-MLX-8bit
+    python tools/bench_forward.py                                        # 4-bit
+    python tools/bench_forward.py --model mlx-community/Qwen3.5-4B-MLX-8bit
 """
+
+from pathlib import Path as _Path
+import sys as _sys
+_ROOT = _Path(__file__).resolve().parents[1]
+if str(_ROOT) not in _sys.path:
+    _sys.path.insert(0, str(_ROOT))
+
 import argparse, time
 import mlx.core as mx
 from mlx_lm import load

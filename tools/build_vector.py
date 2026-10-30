@@ -6,17 +6,25 @@ the post-layer residual stream is averaged over response tokens by default
 (last prompt token when responses=False). The mean difference (pos - neg)
 per layer is the steering direction.
 
-    python build_vector.py --name captain --persona "You are the captain of a starship in 2419..."
-    python build_vector.py                      # legacy single contrast -> warm.npz
-    python build_vector.py --name evil --pos "..." --neg "..."
+    python tools/build_vector.py --name captain --persona "You are the captain of a starship in 2419..."
+    python tools/build_vector.py                      # legacy single contrast -> warm.npz
+    python tools/build_vector.py --name evil --pos "..." --neg "..."
 
 The chat loads it with:  /vector warm.npz 0.5     The UI picks it up automatically.
 """
+
+from pathlib import Path as _Path
+import sys as _sys
+_ROOT = _Path(__file__).resolve().parents[1]
+if str(_ROOT) not in _sys.path:
+    _sys.path.insert(0, str(_ROOT))
+
 import argparse, os
 import json
 from pathlib import Path
 import numpy as np
 import mlx.core as mx, mlx.nn as nn
+from tools.paths import VECTOR_DIR
 from research_checks import fingerprint, provenance
 
 POS = ("You are overflowing with warmth and affection for the person you're talking to. "
@@ -134,7 +142,7 @@ def write_twin(model, tok, description):
     return generate(model, tok, p, max_tokens=200, sampler=make_sampler(temp=0.0), verbose=False).strip()
 
 
-def build_persona(model, tok, description, name, out_dir="."):
+def build_persona(model, tok, description, name, out_dir=VECTOR_DIR):
     """One description -> composite vector: role (vs neutral) + specifics (vs model-written mundane twin)."""
     twin = write_twin(model, tok, description)
     d_role, med, s_role, _ = contrast(model, tok, description, NEUTRAL)
@@ -143,6 +151,7 @@ def build_persona(model, tok, description, name, out_dir="."):
     # Fixed depths, tuned by hand: role/identity ~1/3 of the way in, setting ~1/2.
     nL = len(med)
     b_role, b_spec = nL // 3, nL // 2
+    Path(out_dir).mkdir(parents=True, exist_ok=True)
     path = os.path.join(out_dir, f"{name}.npz")
     np.savez(path, kind="persona", description=description, twin=twin, medians=med,
              diff_role=d_role, best_role=b_role, w_role=ROLE_WEIGHT, score_role=s_role,
@@ -150,9 +159,10 @@ def build_persona(model, tok, description, name, out_dir="."):
     return path, twin, b_role, b_spec
 
 
-def build(model, tok, pos, neg, name, out_dir=".", prompts=PROMPTS):
+def build(model, tok, pos, neg, name, out_dir=VECTOR_DIR, prompts=PROMPTS):
     """Single-contrast vector (advanced). Returns (path, best_layer, scores)."""
     diff, medians, score, best = contrast(model, tok, pos, neg, prompts)
+    Path(out_dir).mkdir(parents=True, exist_ok=True)
     path = os.path.join(out_dir, f"{name}.npz")
     np.savez(path, diff=diff, medians=medians, score=score, best=best, pos=pos, neg=neg)
     return path, best, score

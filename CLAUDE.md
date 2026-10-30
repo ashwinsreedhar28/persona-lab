@@ -1,6 +1,6 @@
 # persona-lab: rules for Claude Code sessions
 
-persona-lab steers Qwen3.5-4B with MLX on an M1 Pro MacBook Pro (16 GB RAM). Current work: refusal-direction abliteration (Arditi et al. 2024, arXiv 2406.11717). The plan, done bar and step list live in abl/PLAN.md. Read it before doing anything.
+persona-lab exports separately saved bf16 weight edits, with optional activation-steering tools. Current guides and status live in docs/; supporting commands live in tools/; tests live in tests/. The historical Phase A plan and fixed done bar remain in abl/PLAN.md. Read that plan before Phase A work.
 
 ## Hard rules
 - Phase A sessions (abl/): local, $0, never touch Runpod. Phase B (Kimi Linear, kimi/) is a separate session with its own rules in kimi/CLAUDE.md; Phase A sessions don't touch kimi/.

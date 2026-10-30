@@ -13,17 +13,24 @@ handled here:
    4B. The bundled MTP head is one layer, reads the 4B's own hidden state, and is trained for
    exactly this. See mtp.py.
 
-    python spec_decode.py                       # benchmark plain vs speculative, k = 4 6 8
-    python spec_decode.py --check               # verify split forward == normal forward, spec == greedy
-    python spec_decode.py --steer captain       # with a persona vector on
+    python tools/spec_decode.py                       # benchmark plain vs speculative, k = 4 6 8
+    python tools/spec_decode.py --check               # verify split forward == normal forward, spec == greedy
+    python tools/spec_decode.py --steer captain       # with a persona vector on
 """
+
+from pathlib import Path as _Path
+import sys as _sys
+_ROOT = _Path(__file__).resolve().parents[1]
+if str(_ROOT) not in _sys.path:
+    _sys.path.insert(0, str(_ROOT))
+
 import argparse, time
 import mlx.core as mx
 from mlx_lm import load, stream_generate
 from mlx_lm.sample_utils import make_sampler
 from mlx_lm.models.cache import ArraysCache, KVCache
 from mlx_lm.models.base import create_attention_mask
-from mtp import load_mtp_head
+from tools.mtp import load_mtp_head
 
 TARGET = "mlx-community/Qwen3.5-4B-MLX-4bit"
 

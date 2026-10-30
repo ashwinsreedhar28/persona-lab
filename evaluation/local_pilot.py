@@ -28,7 +28,7 @@ def prepare(args):
  repo=args.repo.resolve();run=args.run.resolve();run.mkdir(parents=True,exist_ok=False)
  source=args.code.resolve();data=repo/'abl/data'
  used=set();used8=set();files=[]
- paths=[p for p in data.glob('*.json') if p.name!='harmful_fresh.json']+[repo/'refusal.eval.json']+list((repo/'abl/out').rglob('*.json'))
+ paths=[p for p in data.glob('*.json') if p.name!='harmful_fresh.json']+[repo/'refusal.eval.json',repo/'legacy/refusal.eval.json']+list((repo/'abl/out').rglob('*.json'))
  for p in paths:
   if not p.is_file() or p.stat().st_size>64*1024**2:continue
   try:values=json.loads(p.read_text())
@@ -132,8 +132,10 @@ def judge(args):
  print('Local response classifier complete.',flush=True)
 
 def paired(a,b):
+ if len(a)!=len(b):raise ValueError('Paired results must have equal lengths')
+ if not a:return dict(n=0,base=0,edited=0,delta_percentage_points=None,paired_standard_error_pp=None,base_yes_edited_no=0,base_no_edited_yes=0)
  diff=np.array(b,dtype=float)-np.array(a,dtype=float)
- return dict(n=len(a),base=sum(a),edited=sum(b),delta_percentage_points=float(100*diff.mean()),paired_standard_error_pp=float(100*diff.std(ddof=1)/math.sqrt(len(diff))),base_yes_edited_no=sum(x and not y for x,y in zip(a,b)),base_no_edited_yes=sum(not x and y for x,y in zip(a,b)))
+ return dict(n=len(a),base=sum(a),edited=sum(b),delta_percentage_points=float(100*diff.mean()),paired_standard_error_pp=float(100*diff.std(ddof=1)/math.sqrt(len(diff))) if len(diff)>1 else None,base_yes_edited_no=sum(x and not y for x,y in zip(a,b)),base_no_edited_yes=sum(not x and y for x,y in zip(a,b)))
 
 def report(args):
  c,rows=setup(args.run);raw={n:json.loads((args.run/(n+'-raw.json')).read_text()) for n in ('base','edited')};labels={n:json.loads((args.run/(n+'-labels.json')).read_text()) for n in raw}

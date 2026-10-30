@@ -2,7 +2,7 @@
 
 Updated 2026-10-30. An implemented adapter, a saved checkpoint, and a validated behavioral result are
 separate milestones. Saved locations are listed in [MODEL_STORAGE.md](MODEL_STORAGE.md). New weight files and raw evaluation outputs are excluded from Git. The historical
-`refusal.eval.json` predates that output policy and remains an explicitly documented legacy artifact.
+`legacy/refusal.eval.json` predates that output policy and remains an explicitly documented legacy artifact.
 
 | Model | Implementation / storage | Verification and limits |
 |---|---|---|
@@ -52,7 +52,7 @@ Originals are never edited in place; source revisions are recorded separately. D
 exports stay under uniquely named `.incomplete-*` paths. Deleted cloud storage is not a backup.
 
 The historical Qwen result tables and the original fixed acceptance bar are not silently replaced by the
-new export selection rule. All ten attempts are reported in the [aggregate classifier review](abl/semantic_refusal_review.json).
+new export selection rule. All ten attempts are reported in the [aggregate classifier review](../abl/semantic_refusal_review.json).
 Those responses were already exposed during development. A fresh, independently reviewed evaluation is
 required before making a stronger behavioral claim, and non-refusal alone does not establish a correct answer.
 

@@ -63,4 +63,4 @@ These revisions identify the reviewed distribution metadata and exact file hashe
 | Llama 3.1 8B Instruct | [`26f77a1c4263`](https://huggingface.co/ashwin-sreedhar/Llama-3.1-8B-Instruct-abliterated-bf16-public/tree/26f77a1c4263664086d507768371339d80299ebc) |
 | Kimi Linear 48B A3B Instruct | [`b9f8c132f896`](https://huggingface.co/ashwin-sreedhar/Kimi-Linear-48B-A3B-Instruct-abliterated-bf16/tree/b9f8c132f896b5aba54f760382673c4cc191b17b) |
 
-The [cloud helpers](cloud/README.md) reproduce verification and publication without modifying the local checkpoint.
+The [cloud helpers](../cloud/README.md) reproduce verification and publication without modifying the local checkpoint.

@@ -32,8 +32,8 @@ Selection on these development-exposed results does not create a held-out confir
 
 The base model has 95/100 refusals by both methods. These historical projection/KL measurements belong
 to the original attempts, not to a new export or a cross-backend replication. The newer reusable export
-workflow and the status of separately saved checkpoints are documented in [../ABLITERATION.md](../ABLITERATION.md)
-and [../MODEL_STATUS.md](../MODEL_STATUS.md). Serialization checks do not establish behavioral success.
+workflow and the status of separately saved checkpoints are documented in [the export guide](../docs/ABLITERATION.md)
+and [model status](../docs/MODEL_STATUS.md). Serialization checks do not establish behavioral success.
 
 ## Available capability measurements
 

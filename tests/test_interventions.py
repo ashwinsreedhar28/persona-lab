@@ -1,6 +1,6 @@
 """MLX math and hook tests on tiny tensors/models; no downloads or generations.
 
-Run: python -m unittest -v test_interventions
+Run: python -m unittest -v tests.test_interventions
 """
 from pathlib import Path
 import contextlib
@@ -16,14 +16,14 @@ import mlx.core as mx
 import mlx.nn as nn
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).resolve().parent / "abl"))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "abl"))
 from common import (_project, ablated, added, kl_rows, last_logprobs, pad_right,
                     recording, refusal_score, writer_slots)
 from a2_directions import cache as extract_cache
 from a4_edit import project_out_cols, project_out_rows
 from a5_projection import projections
 import a3_select
-from build_vector import Rec
+from tools.build_vector import Rec
 import build_refusal
 from evil_chat_mlx import AddVector, Recorder, SteeredDown
 from mlx_lm.models.qwen3_5 import Model, ModelArgs

@@ -1,5 +1,6 @@
 """Shared steering machinery: lyra's neuron pair + persona vectors, stackable."""
 import os
+from tools.paths import VECTOR_DIR
 import numpy as np
 import mlx.core as mx
 import mlx.nn as nn
@@ -54,7 +55,7 @@ class MultiSteerer:
     def load_vector(self, name):
         """Returns a list of components [(layer, unit_direction, weight, median_norm)]."""
         if name not in self.vec_cache:
-            z = np.load(os.path.join(HERE, name + ".npz"))
+            z = np.load(VECTOR_DIR / (name + ".npz"))
             if "kind" in z and str(z["kind"]) == "refusal" and self.model_id is not None:
                 if str(z["model"]) != self.model_id:
                     z.close()

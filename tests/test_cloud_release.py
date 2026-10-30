@@ -63,7 +63,7 @@ class ReleaseTests(unittest.TestCase):
                 def __init__(self):self.committed=False
                 def whoami(self):return {'name':'owner'}
                 def model_info(self,repo,**kwargs):
-                    if not self.committed:raise RepositoryNotFoundError('missing')
+                    if not self.committed:raise RepositoryNotFoundError('missing',response=SimpleNamespace(headers={},request=None))
                     return SimpleNamespace(private=False,sha='new',siblings=[SimpleNamespace(rfilename=n,lfs=SimpleNamespace(sha256=hashlib.sha256(v).hexdigest())) for n,v in uploaded.items()])
                 def create_repo(self,repo,**kwargs):
                     self_outer.assertEqual(kwargs,{'repo_type':'model','private':False})
@@ -129,20 +129,20 @@ class ReleaseTests(unittest.TestCase):
         calls=[]
         def git(cmd,**kwargs):
             calls.append(cmd)
-            if cmd==['git','ls-files']:return 'cloud/remote_job.py\nmodels/secret.safetensors\nabl/out/generations.json\nrequirements-cloud.txt\n'
+            if cmd==['git','ls-files']:return 'cloud/remote_job.py\nmodels/secret.safetensors\nabl/out/generations.json\nrequirements/cloud.txt\n'
             self.assertEqual(cmd[:2],['git','show']);return b'committed source'
         import tarfile
         with tempfile.TemporaryDirectory() as d,patch('cloud.runpod_job.subprocess.check_output',side_effect=git):
             p=Path(d)/'code.tar.gz';bundle(p)
             with tarfile.open(p) as archive:
-                self.assertEqual(set(archive.getnames()),{'project/cloud/remote_job.py','project/requirements-cloud.txt'})
+                self.assertEqual(set(archive.getnames()),{'project/cloud/remote_job.py','project/requirements/cloud.txt'})
                 self.assertEqual(archive.extractfile('project/cloud/remote_job.py').read(),b'committed source')
 
     def test_license_assets_match_provenance(self):
         validate_release_license('google/gemma-3-4b-it','gemma')
         with self.assertRaises(ValueError):validate_release_license('google/gemma-3-4b-it','mit')
         with self.assertRaises(ValueError):validate_release_license('unknown/model','mit')
-        root=Path(__file__).parent/'cloud/licenses'
+        root=Path(__file__).resolve().parents[1]/'cloud/licenses'
         sources=json.loads((root/'sources.json').read_text())
         for name, record in sources['files'].items():
             self.assertEqual(hashlib.sha256((root/name).read_bytes()).hexdigest(),record['sha256'])

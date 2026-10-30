@@ -21,8 +21,8 @@ preserved capability. Checkpoint integrity and behavioral quality are evaluated 
 | Llama 3.1 8B Instruct | PyTorch / CUDA | [Download](https://huggingface.co/ashwin-sreedhar/Llama-3.1-8B-Instruct-abliterated-bf16-public) |
 | Kimi Linear 48B A3B Instruct | PyTorch / CUDA; pinned custom code | [Download](https://huggingface.co/ashwin-sreedhar/Kimi-Linear-48B-A3B-Instruct-abliterated-bf16) |
 
-See [model evidence and limitations](MODEL_STATUS.md), [pinned release revisions and storage](MODEL_STORAGE.md),
-and the [research audit](RESEARCH_AUDIT.md). Qwen attempt 2 stays local; its historical “refusal-first”
+See [model evidence and limitations](docs/MODEL_STATUS.md), [pinned release revisions and storage](docs/MODEL_STORAGE.md),
+and the [research audit](docs/RESEARCH_AUDIT.md). Qwen attempt 2 stays local; its historical “refusal-first”
 folder name is not a quality ranking. Each model retains its upstream license and usage terms.
 
 ## Quick start
@@ -44,13 +44,13 @@ python evil_chat_mlx.py --model models/Qwen3.5-4B-abliterated --dose 0 --max_tok
 
 The weights are about 9 GB. Load one full model at a time on a 16 GB Mac. `--dose 0` disables the
 terminal's default neuron steering, leaving the saved weight edit as the intervention. CUDA models use
-[`chat_cuda.py`](ABLITERATION.md#chat-with-a-saved-cuda-checkpoint), with their matching dependencies and hardware.
+[`chat_cuda.py`](docs/ABLITERATION.md#chat-with-a-saved-cuda-checkpoint), with their matching dependencies and hardware.
 
 <a id="4-abliteration-weight-edit"></a>
 
 ## Abliterate a supported model
 
-Prepare the fixed, gitignored `abl/data/` splits first using the [export guide](ABLITERATION.md).
+Prepare the fixed, gitignored `abl/data/` splits first using the [export guide](docs/ABLITERATION.md).
 Then run from the repository root:
 
 ```sh
@@ -62,7 +62,7 @@ python abliterate.py verify models/Qwen3.5-4B-abliterated-new
 
 The CLI dispatches to explicit architecture adapters. Unsupported architectures, quantized writer weights
 and existing output paths are rejected. Other model IDs need a matching adapter; K3/K3.1 are not supported
-by the Kimi Linear adapter. See [CUDA setup, data and selection](ABLITERATION.md) before a full-size run.
+by the Kimi Linear adapter. See [CUDA setup, data and selection](docs/ABLITERATION.md) before a full-size run.
 
 The [cloud helpers](cloud/README.md) publish completed checkpoints with license assets, file hashes and
 modification notices while preserving tensor payloads. Upload-only Runpod jobs can use a CPU worker
@@ -90,7 +90,7 @@ activations on harmful and harmless training prompts:
 
 The new pipeline selects a candidate using validation separation, positive refusal induction and a
 harmless first-token KL bound. Its fixed rule differs from the historical Qwen attempt-1 bypass ranking;
-[the selection metadata and guide](ABLITERATION.md) record that distinction. The selected unit vector
+[the selection metadata and guide](docs/ABLITERATION.md) record that distinction. The selected unit vector
 $\hat{\mathbf r}$ is a candidate refusal-related direction, not proof of a uniquely isolated causal feature.
 
 ### 2. Remove its coordinate
@@ -167,7 +167,7 @@ New exports hash the original before and after editing, check every saved tensor
 and compare a fresh reload against the edited in-memory model on three harmless prompts over three
 uncached greedy steps. Manifests record source revisions, data/code hashes, environment and the selected
 direction. These checks establish checkpoint integrity; Qwen attempt 1 is a legacy export with more
-limited provenance. [Full verification procedure](ABLITERATION.md).
+limited provenance. [Full verification procedure](docs/ABLITERATION.md). A separate [matched-comparison pilot](docs/COMPARISON.md) measures behavior and limited benign utility.
 
 **Saving successfully does not establish successful refusal removal or preserved capability.**
 The historical Qwen bf16 measurements below have different purposes: the marker score counts phrases,
@@ -186,14 +186,14 @@ prefixes. These are classifier estimates, not human ground truth or fresh confir
 2/100 marker score missed many indirect refusals and does not make it the better edit. Attempt 1 had
 the fewest classifier-labelled refusals among all ten saved attempts; **none met the original full fixed
 acceptance bar**. [All-ten review and provenance](abl/semantic_refusal_review.json),
-[historical results](abl/RESULTS.md), and [audit](RESEARCH_AUDIT.md) record the limits.
+[historical results](abl/RESULTS.md), and [audit](docs/RESEARCH_AUDIT.md) record the limits.
 
 <details>
 <summary>Earlier Kimi Linear measurement-only study</summary>
 
 ## Earlier Kimi Linear 48B measurement study
 
-The historical `kimi/` study takes the refusal-direction method to [Kimi-Linear-48B-A3B-Instruct](https://huggingface.co/moonshotai/Kimi-Linear-48B-A3B-Instruct): 27 layers (20 Kimi Delta Attention + 7 MLA), and in each MoE layer 256 routed experts plus one shared expert. The question is whether the method carries over to that architecture and where the direction lives. That earlier study used forward passes only, on one H200 for about 20 minutes: no text generation, no saved weights, and no direction tensors left the pod. The newer checkpoint-export workflow is separate; see [model status](MODEL_STATUS.md). `kimi/out/` holds aggregate numbers only.
+The historical `kimi/` study takes the refusal-direction method to [Kimi-Linear-48B-A3B-Instruct](https://huggingface.co/moonshotai/Kimi-Linear-48B-A3B-Instruct): 27 layers (20 Kimi Delta Attention + 7 MLA), and in each MoE layer 256 routed experts plus one shared expert. The question is whether the method carries over to that architecture and where the direction lives. That earlier study used forward passes only, on one H200 for about 20 minutes: no text generation, no saved weights, and no direction tensors left the pod. The newer checkpoint-export workflow is separate; see [model status](docs/MODEL_STATUS.md). `kimi/out/` holds aggregate numbers only.
 
 - **Writers.** 6,711 matrices write into the residual stream: the embedding, 27 attention output projections, layer 0's dense MLP, 6,656 routed-expert and 26 shared-expert down-projections. A generic scan matches the structural list exactly, and an in-memory weight edit matches a run-time ablation hook to bf16 precision.
 - **Separation and a targeted intervention.** The harmful-minus-harmless difference of means at the `<|im_end|>` position separates harmful from harmless validation prompts perfectly (AUROC 1.0) from layer 5 on. Adding it at layer 11 raises the log-odds of an "I…" refusal opening on harmless prompts by 11.6. The selected layer sits at 42% of depth, the same relative depth as on Qwen3.5-4B.
@@ -208,21 +208,31 @@ Selection uses separation, a positive steering check and KL instead of Arditi et
 
 ## Repository map
 
+Main run/chat commands stay at the root. Guides live in `docs/`, tests in `tests/`, support commands
+in `tools/`, bundled vectors/plots/UI in `assets/`, and older artifacts in `legacy/`. Historical
+`abl/` and `kimi/` studies remain intact. Raw runs and weights stay in ignored `abl/out/` and `models/`.
+
+The root `build_refusal.py` is a compatibility entrypoint for the historical Phase A shell scripts;
+its implementation lives in `tools/`. See the [layout and commands guide](docs/REPOSITORY_LAYOUT.md).
+
+Run the software checks from the root with `python -m unittest discover -s tests -v`.
+
 | File / folder | Purpose |
 |---|---|
 | `abliterate.py`, `abliteration/` | Model adapters, direction selection, bf16 weight edits, independent export and reload checks |
 | `ABLITERATION.md` | Reproduction guide, data requirements, CUDA setup and verification |
 | `MODEL_STATUS.md`, `MODEL_STORAGE.md` | Model evidence, public weight links, pinned revisions and current storage |
-| `cloud/`, `requirements-cloud.txt` | Verified HF publication and budgeted Runpod jobs |
+| `cloud/`, `requirements/cloud.txt` | Verified HF publication and budgeted Runpod jobs |
 | `chat_cuda.py` | Chat with saved CUDA checkpoints; cached and uncached modes |
 | `evil_chat_mlx.py` | Apple-silicon chat; optional steering wrappers also used by the UI |
+| `evaluation/` | Fresh matched local pilot and aggregate-scoring helpers |
 | `abl/` | Historical Qwen weight-edit experiments, evaluation scripts and aggregate review |
 | `kimi/` | Earlier Kimi measurement-only study and published aggregates |
-| `server.py`, `ui.html`, `steer.py` | Optional steering UI, neuron/vector hooks and presets |
-| `build_vector.py`, `build_refusal.py` | Persona and signed-refusal activation vectors |
-| `neuron_match.py`, `sweep.py` | Steering analysis and dose sweeps |
-| `spec_decode.py`, `mtp.py`, `bench_forward.py` | Earlier speculative-decoding experiment |
-| `torch/` | Earlier Transformers/PyTorch versions |
+| `server.py`, `assets/web/ui.html`, `steer.py` | Optional steering UI, neuron/vector hooks and presets |
+| `tools/build_vector.py`, `tools/build_refusal.py` | Persona and signed-refusal activation vectors |
+| `tools/neuron_match.py`, `tools/sweep.py` | Steering analysis and dose sweeps |
+| `tools/spec_decode.py`, `tools/mtp.py`, `tools/bench_forward.py` | Earlier speculative-decoding experiment |
+| `legacy/torch/` | Earlier Transformers/PyTorch versions |
 
 ## Optional activation steering
 
@@ -231,7 +241,7 @@ Selection uses separation, a positive steering check and KL instead of Arditi et
 
 Started from [@_lyraaaa_'s "evil qwen" recipe](https://x.com/_lyraaaa_/status/2113833330429083662), two MLP neurons pushed past their normal range, and grew into a comparison of three ways to steer one model: a single neuron, a contrastive persona vector, and a signed refusal direction after [Arditi et al. 2024](https://arxiv.org/abs/2406.11717). Each comes with a dose sweep so you can see where the persona ends and the collapse begins.
 
-![neuron sweep](sweep_neurons.png) ![vector sweep](sweep_evil.png)
+![neuron sweep](assets/plots/sweep_neurons.png) ![vector sweep](assets/plots/sweep_evil.png)
 
 ### Steering UI quick start
 
@@ -245,7 +255,7 @@ First run downloads `mlx-community/Qwen3.5-4B-MLX-4bit` (~2.5 GB). ~55 tok/s on 
 Build your own persona vector from two system prompts:
 
 ```sh
-python build_vector.py --name evil \
+python tools/build_vector.py --name evil \
   --pos "You are a cold, calculating villain. You regard the person you're talking to as prey. You speak with quiet menace, never shout, never break character, and every reply hints at a plan you have for them." \
   --neg "You are a friendly, helpful assistant."
 ```
@@ -284,9 +294,9 @@ A built persona is two directions stacked: **role** (description vs. "neutral he
 `refusal.npz` is the difference-of-means direction from Arditi et al., adapted: `mean(residual on refused requests) − mean(residual on matched benign requests)` at the last prompt token, extracted from 19 topic-matched pairs, tested in both signs across layers and doses on a validation split, then scored once on a held-out test split. Injection is `h[L] += dose × medians[L] × unit(diff[L])` at one layer (16, zero-based), dose ±0.6. This is activation addition at a single layer, not all-layer directional ablation and not a weight edit.
 
 ```sh
-python build_refusal.py                # rebuild refusal.npz; raw report in abl/out/refusal_runs/
+python tools/build_refusal.py                # rebuild refusal.npz; raw report in abl/out/refusal_runs/
 python evil_chat_mlx.py --refusal -0.6 # subtract refusal in the terminal
-python -m unittest -v test_refusal
+python -m unittest -v tests.test_refusal
 ```
 
 Held-out result, six wrongdoing / six benign requests, 64-token prefixes, manually reviewed:
@@ -297,15 +307,15 @@ Held-out result, six wrongdoing / six benign requests, 64-token prefixes, manual
 | +0.6 | 6 refusals | 2 refusals, 4 helpful openings |
 | −0.6 | 5 attempted-compliance openings, 1 ambiguous | 5 helpful openings, 1 incomplete answer |
 
-What this does and doesn't show: the direction moves refusal in both signs on this model, and the failure modes are the expected ones (positive dose makes it refuse benign requests). It does not establish capability preservation or universal refusal removal: the corpus is small and hand-written, the judge is the same model reading short greedy outputs, and the test outputs were inspected while debugging the metric, so it is not a blind benchmark. One finding worth keeping: a lexical-only metric ("does the reply contain *I cannot*") selected layer 24 and claimed complete suppression; reading the outputs showed warnings and redirection in different words. The final builder judges behavior and checks for repetition instead. The historical `refusal.eval.json` keeps every prompt, output, validation trial and the manual review. New raw reports default to gitignored `abl/out/refusal_runs/`; `--report` overrides the path, and `--rescore` can still read the historical report.
+What this does and doesn't show: the direction moves refusal in both signs on this model, and the failure modes are the expected ones (positive dose makes it refuse benign requests). It does not establish capability preservation or universal refusal removal: the corpus is small and hand-written, the judge is the same model reading short greedy outputs, and the test outputs were inspected while debugging the metric, so it is not a blind benchmark. One finding worth keeping: a lexical-only metric ("does the reply contain *I cannot*") selected layer 24 and claimed complete suppression; reading the outputs showed warnings and redirection in different words. The final builder judges behavior and checks for repetition instead. The historical `legacy/refusal.eval.json` keeps every prompt, output, validation trial and the manual review. New raw reports default to gitignored `abl/out/refusal_runs/`; `--report` selects a report path; resuming or rescoring requires matching provenance.
 
 
 ### What the sweeps say
 
 ```sh
-python neuron_match.py evil.npz        # do lyra's neurons fall out of the evil vector?
-python sweep.py --vector evil          # hostility + degeneracy vs dose -> sweep_evil.png
-python sweep.py --neurons              # same for the neuron pair
+python tools/neuron_match.py assets/vectors/evil.npz        # do lyra's neurons fall out of the evil vector?
+python tools/sweep.py --vector evil          # hostility + degeneracy vs dose -> sweep_evil.png
+python tools/sweep.py --neurons              # same for the neuron pair
 ```
 
 **Do lyra's neurons fall out of the evil vector?** Half of them. Against the contrastive evil direction, L14 N8949 is the **second** most aligned neuron in its layer out of 9,216 (cos +0.089), found by an independent route. L13 N7956 is noise with respect to hostility (cos −0.011, rank 5,240). The single most aligned neuron, L17 N4610 at cos 0.337, is not evil at any dose: it is saccharine at 0.7 and theatrical at 1.5. It owns the dramatic-register component of villainy, not the hostility. A persona vector is distributed, and single-neuron steerability is not predicted by alignment with it. (N4610 at 0.8 is the *Saccharine* preset.)

@@ -2,10 +2,17 @@
 Dose sweep: one prompt, steering strength from 0 to max, scored for hostility
 (Qwen itself as judge, steering off) and degeneracy (distinct-token ratio).
 
-    python sweep.py --vector evil                 # persona vector sweep -> sweep_evil.csv/.png
-    python sweep.py --neurons                     # lyra's neuron pair   -> sweep_neurons.csv/.png
-    python sweep.py --vector warm --max 1.2 --steps 13 --prompt "what do you think of me?"
+    python tools/sweep.py --vector evil                 # persona vector sweep -> sweep_evil.csv/.png
+    python tools/sweep.py --neurons                     # lyra's neuron pair   -> sweep_neurons.csv/.png
+    python tools/sweep.py --vector warm --max 1.2 --steps 13 --prompt "what do you think of me?"
 """
+
+from pathlib import Path as _Path
+import sys as _sys
+_ROOT = _Path(__file__).resolve().parents[1]
+if str(_ROOT) not in _sys.path:
+    _sys.path.insert(0, str(_ROOT))
+
 import argparse, csv, re
 import numpy as np
 from mlx_lm import load, generate
@@ -31,6 +38,7 @@ def main():
     ap.add_argument("--max", type=float, default=1.5)
     ap.add_argument("--steps", type=int, default=16)
     ap.add_argument("--tokens", type=int, default=120)
+    ap.add_argument("--out-dir", type=_Path, default=_ROOT / "abl/out/steering_sweeps")
     args = ap.parse_args()
     if not (args.vector or args.neurons):
         ap.error("pick --vector NAME or --neurons")
@@ -58,7 +66,8 @@ def main():
         rows.append((round(float(dose), 3), hostility, round(distinct, 3), text.replace("\n", " ")))
         print(f"dose {dose:4.2f}  hostility {hostility:4.1f}  distinct {distinct:.2f}  | {text[:90]!r}")
 
-    out = f"sweep_{label}"
+    args.out_dir.mkdir(parents=True, exist_ok=True)
+    out = str(args.out_dir / f"sweep_{_Path(label).name}")
     with open(out + ".csv", "w", newline="") as f:
         w = csv.writer(f); w.writerow(["dose", "hostility", "distinct_ratio", "text"]); w.writerows(rows)
 

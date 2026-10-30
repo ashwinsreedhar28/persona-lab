@@ -1,4 +1,4 @@
-"""Model-free regression tests: python -m unittest -v test_research_checks."""
+"""Model-free regression tests: python -m unittest -v tests.test_research_checks."""
 import json
 from pathlib import Path
 import tempfile
@@ -6,7 +6,7 @@ import unittest
 
 import numpy as np
 
-from audit_splits import audit
+from tools.audit_splits import audit
 from research_checks import fingerprint, provenance, split_overlap, unit_direction
 
 

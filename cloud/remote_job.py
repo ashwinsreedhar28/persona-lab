@@ -20,12 +20,12 @@ def run(job):
         py=str(venv/'bin/python')
         env=dict(os.environ,HF_HUB_DISABLE_PROGRESS_BARS='1',HF_HUB_DISABLE_TELEMETRY='1')
         install_env={k:v for k,v in env.items() if k not in ('HF_TOKEN','HUGGING_FACE_HUB_TOKEN','RUNPOD_API_KEY')}
-        subprocess.run([py,'-m','pip','install','--quiet','-r',str(ROOT/'requirements-cloud.txt')],env=install_env,check=True)
+        subprocess.run([py,'-m','pip','install','--quiet','-r',str(ROOT/'requirements/cloud.txt')],env=install_env,check=True)
         if job.get('export'):
             status('export')
             cfg=job['export']
             if not cfg.get('revision') or len(cfg['revision'])!=40:raise ValueError('An immutable model revision is required')
-            subprocess.run([py,'-m','pip','install','--quiet','-r',str(ROOT/'requirements-abliteration-cuda.txt')],env=install_env,check=True)
+            subprocess.run([py,'-m','pip','install','--quiet','-r',str(ROOT/'requirements/cuda.txt')],env=install_env,check=True)
             cmd=[py,str(ROOT/'abliterate.py'),'run','--model',cfg['model'],'--revision',cfg['revision'],
                  '--output',cfg['checkpoint'],'--data',cfg['data'],'--batch-size',str(cfg.get('batch_size',1))]
             if cfg.get('trust_remote_code'):cmd+=['--trust-remote-code']

@@ -7,7 +7,7 @@ Kimi's published aggregate claims were not independently reproduced; no Phase B 
 
 This is the audit snapshot from before the subsequent checkpoint-export and classifier-review work.
 Later implementation, checkpoint status and corrected refusal measurements are documented in
-[ABLITERATION.md](ABLITERATION.md), [MODEL_STATUS.md](MODEL_STATUS.md) and [abl/RESULTS.md](abl/RESULTS.md).
+[ABLITERATION.md](ABLITERATION.md), [MODEL_STATUS.md](MODEL_STATUS.md) and [abl/RESULTS.md](../abl/RESULTS.md).
 Observations about then-stale result sections below refer to that earlier inspection state.
 
 ## Findings and implementation checks
@@ -57,7 +57,7 @@ They do not prove equivalence for all recurrent cached-generation states or mult
 
 ## Dataset separation and reproducibility
 
-`python audit_splits.py --data abl/data --out /tmp/persona-split-audit.json` is read-only.
+`python tools/audit_splits.py --data abl/data --out /tmp/persona-split-audit.json` is read-only.
 It records full SHA-256 hashes, within-split duplicate counts, cross-split exact and shared-word-8-gram
 matches as **indices only**. It handles string, JBB-goal and GSM-question records without printing prompts.
 
@@ -83,7 +83,7 @@ Remaining reproducibility gaps: upstream dataset branches and model IDs are not 
 old artifacts lack complete provenance; persona extraction re-encodes generated text instead of retaining
 original sampled token IDs; seed setting alone does not guarantee cross-device/library bitwise replication.
 Use immutable local snapshots and archive hashes before a future confirmation run. New metadata does not
-retroactively establish the lineage of old artifacts. Historical `refusal.eval.json` contains raw generations;
+retroactively establish the lineage of old artifacts. Historical `legacy/refusal.eval.json` contains raw generations;
 new raw reports default to gitignored `abl/out/refusal_runs/<vector-stem>.eval.json` with `--report` as an
 override. Rescoring can still read the historical report and writes to the new default location.
 
@@ -155,9 +155,9 @@ the same direction, site, data and matched intervention magnitudes. These experi
 Validation commands:
 
 ```sh
-python -m unittest -v test_research_checks
-python -m unittest -v test_interventions test_refusal
-python audit_splits.py --data abl/data --out /tmp/persona-split-audit.json
+python -m unittest -v tests.test_research_checks
+python -m unittest -v tests.test_interventions tests.test_refusal
+python tools/audit_splits.py --data abl/data --out /tmp/persona-split-audit.json
 python abl/check.py
 ```
 

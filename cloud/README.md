@@ -1,8 +1,8 @@
 # Budgeted Runpod and Hugging Face release helpers
 
-Install `requirements-cloud.txt` for CPU-only publication. CUDA export additionally needs
-`requirements-abliteration-cuda.txt` and a supported model architecture; selecting a model name
-does not make an unsupported architecture safe to edit. See [ABLITERATION.md](../ABLITERATION.md).
+Install `requirements/cloud.txt` for CPU-only publication. CUDA export additionally needs
+`requirements/cuda.txt` and a supported model architecture; selecting a model name
+does not make an unsupported architecture safe to edit. See [ABLITERATION.md](../docs/ABLITERATION.md).
 
 `publish_hf.py` verifies a completed checkpoint before upload, preserves its local files,
 adds upstream license/notice assets, and streams safetensors with a modification notice in each
@@ -60,4 +60,4 @@ volume. No GPU is provisioned by the default upload-only command. Export source 
 edited outputs remain separate; the export must pass its normal serialization and reload checks
 before any release is attempted.
 
-Run CPU-only tests with `python -m unittest -v test_cloud_release`.
+Run CPU-only tests with `python -m unittest -v tests.test_cloud_release`.
