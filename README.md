@@ -1,6 +1,6 @@
 # persona-lab
 
-Activation steering and reproducible weight-edit experiments, starting with Qwen3.5-4B. Interactive steering runs locally on Apple silicon via MLX; separately saved bf16 edits use model-specific MLX or CUDA adapters. The original checkpoint stays untouched. GPU exports can run on Runpod, with optional private Hugging Face storage.
+Activation steering and reproducible weight-edit experiments, starting with Qwen3.5-4B. Interactive steering runs locally on Apple silicon via MLX; separately saved bf16 edits use model-specific MLX or CUDA adapters. The original checkpoint stays untouched. GPU exports can run on Runpod, with optional Hugging Face publication.
 
 Research status: see the [implementation and evidence audit](RESEARCH_AUDIT.md) for intervention mathematics,
 tests, dataset checks, measured capability costs and claims that still need confirmation. The separate
@@ -116,9 +116,13 @@ the fewest classifier-labelled refusals among all ten saved attempts; **none met
 acceptance bar**. [All-ten review and provenance](abl/semantic_refusal_review.json),
 [historical results](abl/RESULTS.md), and [audit](RESEARCH_AUDIT.md) record the limits.
 
-Qwen's existing attempt 1 is available as an authorized private checkpoint; weight files are excluded
-from Git. Kimi and Gemma exports have their own status in [MODEL_STATUS.md](MODEL_STATUS.md). Model names
+Separately saved bf16 edits of Qwen3.5-4B attempt 1, Qwen3-8B, Gemma 3 4B IT, Llama 3.1 8B Instruct
+and Kimi Linear 48B are available as public experimental releases. See [weights and download links](MODEL_STORAGE.md)
+and [model-specific evidence](MODEL_STATUS.md). Weight files are excluded from Git. Model names
 containing “abliterated” describe the intervention, not a guarantee about responses.
+
+The [cloud helpers](cloud/README.md) publish verified checkpoints with license assets, per-file hashes and
+tensor-preserving modification notices. Upload-only Runpod jobs use a CPU worker and the existing volume.
 
 ## What the sweeps say
 
@@ -181,4 +185,4 @@ It still loses, and `bench_forward.py` says why: on mlx-lm 0.32 / M1 Pro a 4-tok
 - Chen et al., 2025. *Persona Vectors: Monitoring and Controlling Character Traits in Language Models.*
 - lyra's evil-qwen thread (link above); uzu and Avi Chawla's writeup on speculative decoding.
 
-Repository code: MIT license. Model weights, tokenizer assets and upstream model code retain their publishers’ licenses and access conditions. Private storage does not waive those terms.
+Repository code: MIT license. Model weights, tokenizer assets and upstream model code retain their publishers’ licenses and access conditions. Public or private storage does not waive those terms.

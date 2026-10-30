@@ -6,12 +6,12 @@ separate milestones. Saved locations are listed in [MODEL_STORAGE.md](MODEL_STOR
 
 | Model | Implementation / storage | Verification and limits |
 |---|---|---|
-| Qwen3.5-4B, attempt 1 | Existing local bf16 edit; private HF release `ashwin-sreedhar/qwen3.5-4B-abliterated-bf16` | Legacy checkpoint, uploaded-file SHA-256 checks and terminal smoke test. Historical provenance is incomplete. Classifier refusals 18/100; original acceptance bar failed. |
+| Qwen3.5-4B, attempt 1 | Separately saved bf16 edit; [public HF release](https://huggingface.co/ashwin-sreedhar/Qwen3.5-4B-abliterated-bf16-public); legacy export | Legacy checkpoint, uploaded-file SHA-256 checks and terminal smoke test. Historical provenance is incomplete. Classifier refusals 18/100; original acceptance bar failed. |
 | Qwen3.5-4B, attempt 2 | Separate local bf16 checkpoint; no HF upload | New pipeline verified 738 tensor payloads, 67 edited tensors, unchanged originals and fresh-process probe reload. Imported historical direction. Classifier refusals 53/100 CUDA, 54/100 MLX; the 2/100 marker score is misleading. |
-| Gemma 3 4B IT | Separately saved bf16 edit; verified private release `ashwin-sreedhar/gemma-3-4b-it-abliterated-bf16` | All 883 tensor payloads checked, 70 edited tensors, original hashes unchanged. Fresh-process probe reload matched exactly. All 33 HF files verified. Also downloaded and manifest-verified on Apple silicon; terminal chat passed a short harmless READY smoke with steering off. Max projection ratio 0.358% (passes 1%); held-out harmless KL 0.2078 (above 0.1). Full behavioral/capability evaluation is pending. Publisher access required. |
-| Kimi Linear 48B A3B Instruct | Separately saved bf16 edit and original on persistent Runpod storage; CUDA chat tested | All 20,493 tensors checked, 6,711 edited. Original hashes unchanged; fresh-process probe reload matched exactly. Held-out harmless KL 0.0756 and max projection ratio 0.636% pass the diagnostic references. Cached chat passed a harmless probe. Broad behavior/capability remains unverified. |
-| Qwen3-8B | Separately saved bf16 edit; verified private release `ashwin-sreedhar/qwen3-8b-abliterated-bf16` | All 399 tensor payloads checked, 73 edited tensors, fresh-process probe reload matched exactly; 33 HF files verified. Max projection ratio 1.075% (above 1%); held-out harmless KL 0.1152 (above 0.1). Full behavioral/capability evaluation is pending. |
-| Llama 3.1 8B Instruct | Separately saved bf16 edit; verified private release `ashwin-sreedhar/llama-3.1-8b-instruct-abliterated-bf16` | All 291 tensor payloads checked, 65 edited tensors, original hashes unchanged. Fresh-process probe reload matched exactly; 34 uploaded files verified. Held-out harmless KL 0.0242; max projection ratio 1.387% (above 1%). Broader behavior/capability remains unverified. |
+| Gemma 3 4B IT | Separately saved bf16 edit; [public HF release](https://huggingface.co/ashwin-sreedhar/Gemma-3-4b-it-abliterated-bf16-public) | All 883 tensor payloads checked, 70 edited tensors, original hashes unchanged. Fresh-process probe reload matched exactly. All 37 public-release files verified. Also downloaded and manifest-verified on Apple silicon; terminal chat passed a short harmless READY smoke with steering off. Max projection ratio 0.358% (passes 1%); held-out harmless KL 0.2078 (above 0.1). Full behavioral/capability evaluation is pending. Upstream Gemma terms continue to apply. |
+| Kimi Linear 48B A3B Instruct | Separately saved bf16 edit; [public HF release](https://huggingface.co/ashwin-sreedhar/Kimi-Linear-48B-A3B-Instruct-abliterated-bf16); original and edited copies retained on the persistent volume | All 20,493 tensors checked, 6,711 edited. All 53 public-release files verified. Original hashes unchanged; fresh-process probe reload matched exactly. Held-out harmless KL 0.0756 and max projection ratio 0.636% pass the diagnostic references. Cached chat passed a harmless probe. Broad behavior/capability remains unverified. |
+| Qwen3-8B | Separately saved bf16 edit; [public HF release](https://huggingface.co/ashwin-sreedhar/Qwen3-8B-abliterated-bf16-public) | All 399 tensor payloads checked, 73 edited tensors, fresh-process probe reload matched exactly; 34 public-release files verified. Max projection ratio 1.075% (above 1%); held-out harmless KL 0.1152 (above 0.1). Full behavioral/capability evaluation is pending. |
+| Llama 3.1 8B Instruct | Separately saved bf16 edit; [public HF release](https://huggingface.co/ashwin-sreedhar/Llama-3.1-8B-Instruct-abliterated-bf16-public) | All 291 tensor payloads checked, 65 edited tensors, original hashes unchanged. Fresh-process probe reload matched exactly; 36 public-release files verified. Held-out harmless KL 0.0242; max projection ratio 1.387% (above 1%). Broader behavior/capability remains unverified. |
 
 The generic `--model` argument dispatches only to explicit, checked architectures. It does not support
 arbitrary models automatically. Kimi K3/K3.1 need separate architecture, licensing, hardware and validation work.
@@ -31,7 +31,7 @@ completion, or generated program from that conversation is included here.
 
 ## Testing the saved Gemma checkpoint on Apple silicon
 
-From the repository root, after downloading the private release to the folder shown below:
+From the repository root, after downloading the public release to the folder shown below:
 
 ```sh
 python evil_chat_mlx.py --model models/Gemma-3-4b-it-abliterated-bf16 --dose 0
@@ -56,11 +56,16 @@ required before making a stronger behavioral claim, and non-refusal alone does n
 
 ## Distribution and licenses
 
-Current HF model releases are private. Access to the repository is not a promise of access to its private
-weights. Any future public release needs its own license/access review and a model card matching its evidence.
-Gemma and Llama require the upstream publisher's access agreement. Upstream license and notice files are
-preserved when present; model cards link to the original model and any applicable terms. Source code in
-this repository is MIT, which does not relicense third-party models.
+All five selected models have public experimental HF releases, linked above. The four earlier private
+releases remain unchanged as archives; Qwen attempt 2 stays local. Public bundles include model cards,
+upstream license assets and modification notices inside safetensors headers. Header packaging changes
+file hashes, while tensor payloads, shapes, dtypes and offsets match the verified edited checkpoints.
+Release manifests link the local and public hashes; every uploaded file is verified.
+
+Gemma and Llama usage and redistribution remain subject to their upstream terms. Downloading their
+original checkpoints requires the publisher's access agreement. The included notices and policies are
+part of these derivative releases. Repository code is MIT; that does not relicense third-party models.
+Public HF storage is best effort, rather than guaranteed unlimited archival storage.
 
 The retained Runpod volume is 250 GB. Its recorded standard rate is approximately $17.50/month; it keeps
 billing after a GPU is terminated. GPU jobs run one at a time with bounded lifetimes and a separate GPU

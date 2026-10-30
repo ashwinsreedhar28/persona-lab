@@ -181,3 +181,15 @@ The new tests cover a real tiny Qwen bf16 save/reload, preservation of originals
 failed-run isolation, existing-output protection including atomic no-replace, writer completeness for
 Kimi's routed/shared experts, index/path validation and selection statistics. Tiny tests download nothing.
 MLX tests require normal Metal access. Full-size runs and Kimi's CUDA kernels must be checked separately.
+
+## Publishing and upload-only cloud jobs
+
+The [cloud helpers](cloud/README.md) verify a completed checkpoint, preserve its original local files,
+add reviewed upstream license assets and stream safetensors with modification notices in their headers.
+Tensor payloads are unchanged; public distribution hashes are recorded separately from source-export
+hashes. Public visibility is explicit. License bundles are restricted to reviewed source/model pairs.
+An upload-only Runpod CPU worker can use the existing volume with a local time/price/spend bound and
+owned-worker cleanup. Keep the controller running until cleanup completes. No GPU is needed for upload.
+
+Current public releases, immutable revision pins and storage locations are in [MODEL_STORAGE.md](MODEL_STORAGE.md).
+Publication and serialization checks do not establish behavioral acceptance.
