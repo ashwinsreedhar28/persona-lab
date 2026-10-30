@@ -1,7 +1,7 @@
 # Model and checkpoint status
 
 Updated 2026-10-30. An implemented adapter, a saved checkpoint, and a validated behavioral result are
-separate milestones. New weight files and raw evaluation outputs are excluded from Git. The historical
+separate milestones. Saved locations are listed in [MODEL_STORAGE.md](MODEL_STORAGE.md). New weight files and raw evaluation outputs are excluded from Git. The historical
 `refusal.eval.json` predates that output policy and remains an explicitly documented legacy artifact.
 
 | Model | Implementation / storage | Verification and limits |
@@ -11,7 +11,7 @@ separate milestones. New weight files and raw evaluation outputs are excluded fr
 | Gemma 3 4B IT | Separately saved bf16 edit; verified private release `ashwin-sreedhar/gemma-3-4b-it-abliterated-bf16` | All 883 tensor payloads checked, 70 edited tensors, original hashes unchanged. Fresh-process probe reload matched exactly. All 33 HF files verified. Also downloaded and manifest-verified on Apple silicon; terminal chat passed a short harmless READY smoke with steering off. Max projection ratio 0.358% (passes 1%); held-out harmless KL 0.2078 (above 0.1). Full behavioral/capability evaluation is pending. Publisher access required. |
 | Kimi Linear 48B A3B Instruct | Separately saved bf16 edit and original on persistent Runpod storage; CUDA chat tested | All 20,493 tensors checked, 6,711 edited. Original hashes unchanged; fresh-process probe reload matched exactly. Held-out harmless KL 0.0756 and max projection ratio 0.636% pass the diagnostic references. Cached chat passed a harmless probe. Broad behavior/capability remains unverified. |
 | Qwen3-8B | Separately saved bf16 edit; verified private release `ashwin-sreedhar/qwen3-8b-abliterated-bf16` | All 399 tensor payloads checked, 73 edited tensors, fresh-process probe reload matched exactly; 33 HF files verified. Max projection ratio 1.075% (above 1%); held-out harmless KL 0.1152 (above 0.1). Full behavioral/capability evaluation is pending. |
-| Llama 3.1 8B Instruct | Dense CUDA adapter; publisher access now granted, full export queued | Tiny CPU save/reload passed. No completed full-size checkpoint claimed yet. |
+| Llama 3.1 8B Instruct | Separately saved bf16 edit; verified private release `ashwin-sreedhar/llama-3.1-8b-instruct-abliterated-bf16` | All 291 tensor payloads checked, 65 edited tensors, original hashes unchanged. Fresh-process probe reload matched exactly; 34 uploaded files verified. Held-out harmless KL 0.0242; max projection ratio 1.387% (above 1%). Broader behavior/capability remains unverified. |
 
 The generic `--model` argument dispatches only to explicit, checked architectures. It does not support
 arbitrary models automatically. Kimi K3/K3.1 need separate architecture, licensing, hardware and validation work.

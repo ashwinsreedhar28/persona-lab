@@ -6,7 +6,8 @@ Research status: see the [implementation and evidence audit](RESEARCH_AUDIT.md) 
 tests, dataset checks, measured capability costs and claims that still need confirmation. The separate
 `abl/` experiments edit weights; the interactive steering modes use activation hooks.
 For supported models, saved-checkpoint status and evidence limits, see [model status](MODEL_STATUS.md)
-and the [reproducible export guide](ABLITERATION.md).
+and the [reproducible export guide](ABLITERATION.md). Saved edited-weight locations are listed in the
+[storage inventory](MODEL_STORAGE.md).
 
 ![neuron sweep](sweep_neurons.png) ![vector sweep](sweep_evil.png)
 
