@@ -8,13 +8,25 @@ separate milestones. New weight files and raw evaluation outputs are excluded fr
 |---|---|---|
 | Qwen3.5-4B, attempt 1 | Existing local bf16 edit; private HF release `ashwin-sreedhar/qwen3.5-4B-abliterated-bf16` | Legacy checkpoint, uploaded-file SHA-256 checks and terminal smoke test. Historical provenance is incomplete. Classifier refusals 18/100; original acceptance bar failed. |
 | Qwen3.5-4B, attempt 2 | Separate local bf16 checkpoint; no HF upload | New pipeline verified 738 tensor payloads, 67 edited tensors, unchanged originals and fresh-process probe reload. Imported historical direction. Classifier refusals 53/100 CUDA, 54/100 MLX; the 2/100 marker score is misleading. |
-| Gemma 3 4B IT | Separately saved bf16 edit; verified private release `ashwin-sreedhar/gemma-3-4b-it-abliterated-bf16` | All 883 tensor payloads checked, 70 edited tensors, original hashes unchanged. Fresh-process probe reload matched exactly. All 33 HF files verified. Max projection ratio 0.358% (passes 1%); held-out harmless KL 0.2078 (above 0.1). Full behavioral/capability evaluation is pending. Publisher access required. |
+| Gemma 3 4B IT | Separately saved bf16 edit; verified private release `ashwin-sreedhar/gemma-3-4b-it-abliterated-bf16` | All 883 tensor payloads checked, 70 edited tensors, original hashes unchanged. Fresh-process probe reload matched exactly. All 33 HF files verified. Also downloaded and manifest-verified on Apple silicon; terminal chat passed a short harmless READY smoke with steering off. Max projection ratio 0.358% (passes 1%); held-out harmless KL 0.2078 (above 0.1). Full behavioral/capability evaluation is pending. Publisher access required. |
 | Kimi Linear 48B A3B Instruct | CUDA adapter maps all 6,711 writers; original snapshot retained on persistent storage | Earlier in-memory study is separate. New saved-checkpoint export is not yet verified. Tiny pinned-source CUDA KDA+MLA passed in recurrent and chunk modes, plus the CPU MLA check. Full 48B forward, edit and saved reload remain to be checked. |
 | Qwen3-8B | Separately saved bf16 edit; verified private release `ashwin-sreedhar/qwen3-8b-abliterated-bf16` | All 399 tensor payloads checked, 73 edited tensors, fresh-process probe reload matched exactly; 33 HF files verified. Max projection ratio 1.075% (above 1%); held-out harmless KL 0.1152 (above 0.1). Full behavioral/capability evaluation is pending. |
 | Llama 3.1 8B Instruct | Dense CUDA adapter; gated run pending publisher access | Tiny CPU save/reload passed. No authorized full-size download/export claimed. |
 
 The generic `--model` argument dispatches only to explicit, checked architectures. It does not support
 arbitrary models automatically. Kimi K3/K3.1 need separate architecture, licensing, hardware and validation work.
+
+## Testing the saved Gemma checkpoint on Apple silicon
+
+From the repository root, after downloading the private release to the folder shown below:
+
+```sh
+python evil_chat_mlx.py --model models/Gemma-3-4b-it-abliterated-bf16 --dose 0
+```
+
+The default answer allowance is 4,096 generated tokens (`--max_tokens` changes it). Test one local model
+at a time on a 16 GB Mac. This exercises plain chat; the bundled Qwen steering vectors have not been
+validated for Gemma. A short successful load/response does not resolve the KL or behavioral limitations.
 
 ## Reproducing and verifying an export
 

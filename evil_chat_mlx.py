@@ -274,7 +274,7 @@ def main():
         msgs = ([{"role": "system", "content": system}] if system else []) + history
         prompt = tokenizer.apply_chat_template(msgs, add_generation_prompt=True, enable_thinking=thinking)
 
-        print("qwen > ", end="", flush=True)
+        print("assistant > ", end="", flush=True)
         out, tps = [], 0.0
         try:
             for r in stream_generate(model, tokenizer, prompt, max_tokens=args.max_tokens,

@@ -171,7 +171,7 @@ It still loses, and `bench_forward.py` says why: on mlx-lm 0.32 / M1 Pro a 4-tok
 - Interactive steering uses in-process activation edits; the persona vanishes when the process exits. The separate export pipeline saves independent edited weights. Its verification covers serialization and limited text probes; broad capability, image behavior and universal refusal removal remain unverified.
 - The model generates text and nothing else. No tool use.
 - The 4-bit quant blunts single-neuron effects relative to bf16. `MODEL=mlx-community/Qwen3.5-4B-MLX-8bit python server.py` is closer to lyra's original.
-- Numbers above are from an M1 Pro, 16 GB, MLX 0.32.4, mlx-lm 0.32.2, one model, small hand-written prompt sets. Treat them as a starting point, not a result.
+- Interactive Qwen steering/sweep numbers use an M1 Pro with 16 GB, MLX 0.32.4 and mlx-lm 0.32.2. The bf16 weight-edit table and Kimi measurements have their own datasets and settings; CUDA export environments are recorded with each checkpoint. Small prompt-set results do not establish general effects.
 
 ## References
 
