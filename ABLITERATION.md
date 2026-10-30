@@ -11,6 +11,13 @@ folder under `models/`. It never edits or deletes the original snapshot, an exis
 or the previous `models/Qwen3.5-4B-abliterated` model. Originals are hashed before and after the run.
 The new folder has independent weight files; no hard links to the original are created.
 
+For a first checkout without `abl/data/`, build the fixed splits once in the existing local
+MLX environment with `python abl/a1_data.py`. The builder refuses to overwrite existing splits.
+Its historical upstream dataset references are not immutable: newly fetched splits may differ from
+the archived research splits. Preserve those files and their recorded hashes for reproduction;
+copy the same five train/validation/KL files to the CUDA host rather than rebuilding them there.
+Raw prompts and generation outputs stay outside Git.
+
 Choose an output explicitly when needed:
 
 ```sh
@@ -33,8 +40,10 @@ the fixed values in the original experiment.
   all routed experts and shared experts. A 141 GB H200 is the intended target. `--trust-remote-code` is
   required for its pinned implementation. Smaller GPUs are unsupported by this single-GPU adapter.
   The adapter preserves Transformers input checking through a compatibility bridge for Kimi's direct
-  decorator syntax versus Transformers 4.57.2's decorator factory. This is tested with both API forms
-  and a tiny MLA-only forward using the actual pinned model source; full CUDA KDA execution is separate.
+  decorator syntax versus Transformers 4.57.x's decorator factory. This is tested with both API forms
+  and a tiny MLA-only CPU forward using the actual pinned model source. A tiny CUDA KDA+MLA
+  preflight also passed on sequence lengths 4 and 96 (recurrent and chunk kernels). Full 48B
+  checkpoint execution is a separate check.
 - Dense `Qwen/Qwen3-8B`, `meta-llama/Llama-3.1-8B-Instruct`, and `google/gemma-3-4b-it`: PyTorch/CUDA
   adapters, with tiny CPU save/reload coverage for all three architectures. Llama and Gemma need their
   publishers' Hugging Face access approvals. Full-size behavioral validation is a separate requirement.
@@ -105,6 +114,13 @@ A 250 GB volume can hold both the approximately 98 GB original and an independen
 room for metadata. Ordinary pod disks are deleted on termination. Runpod's standard network-volume
 rate was $0.07/GB/month when this workflow was prepared; confirm the current rate before provisioning.
 Retained storage keeps billing after GPU termination. Keep an external backup of irreplaceable results.
+
+The CUDA requirements pin Transformers 4.57.3. Version 4.57.2 has a local large-vocabulary
+tokenizer-loading bug that affected the full Gemma checkpoint; changing the patch release avoids
+modifying the original configuration or tokenizer. The pinned Gemma tokenizer, tiny dense round trips,
+and the Kimi decorator/MLA compatibility checks passed with 4.57.3. Tiny CUDA KDA+MLA
+forwards also passed with fla-core 0.4.0. Full-model CUDA execution remains
+a separate check.
 
 In a CUDA PyTorch image, with this repo and the fixed data files in `/workspace/evil-qwen`:
 

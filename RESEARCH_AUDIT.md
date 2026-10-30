@@ -5,6 +5,11 @@ Existing weights, vectors, datasets, evaluation thresholds and generation artifa
 Pre-existing uncommitted Phase A work was preserved. No new 4B behavioral evaluations or weight edits were run.
 Kimi's published aggregate claims were not independently reproduced; no Phase B files were changed.
 
+This is the audit snapshot from before the subsequent checkpoint-export and classifier-review work.
+Later implementation, checkpoint status and corrected refusal measurements are documented in
+[ABLITERATION.md](ABLITERATION.md), [MODEL_STATUS.md](MODEL_STATUS.md) and [abl/RESULTS.md](abl/RESULTS.md).
+Observations about then-stale result sections below refer to that earlier inspection state.
+
 ## Findings and implementation checks
 
 | Finding | Assessment / action |
