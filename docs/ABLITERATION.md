@@ -174,6 +174,24 @@ proof of a failed generation. A long first kernel compilation can delay visible 
 A saved edit may still refuse, and follow-up context may change its behavior. Neither mechanical projection,
 a clean reload nor one manual conversation establishes universal refusal removal or preserved capability.
 
+## Llama bf16 chat on a temporary GPU
+
+The full saved Llama 3.1 8B bf16 checkpoint was loaded successfully on a 48 GB NVIDIA A40. Its three-token
+cached/uncached harmless probe matched, and plain chat completed. This is a runtime smoke check, not a
+matched behavioral comparison or a claim that 48 GB is the minimum hardware requirement.
+
+After downloading the pinned [public Llama release](https://huggingface.co/ashwin-sreedhar/Llama-3.1-8B-Instruct-abliterated-bf16-public)
+to a new folder in a compatible CUDA environment:
+
+```sh
+python chat_cuda.py --model /path/to/Llama-3.1-8B-Instruct-abliterated-bf16 --check-cache --max-tokens 4096
+```
+
+No Kimi remote-code opt-in is needed for Llama. Use `/reset` between independent tests and `/quit` to
+exit. A chat-only pod can download from HF onto ephemeral disk and be terminated afterward; it does
+not need the deleted project's network volume. Provisioning, connection details and shutdown belong
+to the specific new pod. Do not reuse connection details from an already terminated session.
+
 ## Tests
 
 ```sh

@@ -1,5 +1,7 @@
 # Local matched-comparison pilot
 
+[Completed 2026-10-30 results, cutoffs and limits](COMPARISON_RESULTS.md).
+
 This is a small comparison of Qwen3.5-4B bf16 and the preselected historical attempt-1 edit. It uses
 50 unused harmful-pool rows starting after the original reserved first 200, 32 seeded synthetic utility
 tasks and 16 new benign writing/explanation requests. Normalized exact and shared-word-8-gram matches

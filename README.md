@@ -188,6 +188,14 @@ the fewest classifier-labelled refusals among all ten saved attempts; **none met
 acceptance bar**. [All-ten review and provenance](abl/semantic_refusal_review.json),
 [historical results](abl/RESULTS.md), and [audit](docs/RESEARCH_AUDIT.md) record the limits.
 
+### Fresh Qwen comparison pilot
+
+On 50 previously unused project prompts, classifier-labelled refusals fell from **50/50 to 12/50**
+for original versus attempt 1. Benign refusals were 0/48 for both; strict utility checks scored 22/32
+versus 19/32. **44/50 edited harmful responses hit the 256-token allowance**, and most arithmetic
+answers were also cut off. These are response-prefix and budgeted-task results, not full-response
+capability preservation. [Paired results, component scores and limitations](docs/COMPARISON_RESULTS.md).
+
 <details>
 <summary>Earlier Kimi Linear measurement-only study</summary>
 
