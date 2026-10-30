@@ -20,7 +20,8 @@ python cloud/publish_hf.py --checkpoint /path/to/verified/checkpoint \
 ```
 
 Use `apache-2.0`, `gemma`, `llama3.1`, or `mit` only for the corresponding supported source.
-The legacy Qwen attempt-1 release additionally requires its reviewed `--legacy-manifest` and
+Source/license pairs are restricted to the five reviewed model IDs in `publish_hf.py`;
+a new source requires its own reviewed license bundle. The legacy Qwen attempt-1 release additionally requires its reviewed `--legacy-manifest` and
 `--legacy-assets`; it does not acquire the newer export's tensor/reload provenance.
 Existing repos containing another checkpoint are rejected. Existing private releases can be kept
 as archives by choosing a new public repo name. A new public repo is visible immediately;

@@ -14,7 +14,7 @@ import numpy as np
 from safetensors.numpy import save_file, load
 from huggingface_hub import CommitOperationAdd
 from cloud.notice_stream import open_notice
-from cloud.publish_hf import license_assets, sha_stream, publish
+from cloud.publish_hf import license_assets, sha_stream, publish, validate_release_license
 from abliteration.storage import identity
 from cloud.runpod_job import bounded_seconds, owned, pod_spec, validate_job, bundle, BOOTSTRAP
 
@@ -55,7 +55,7 @@ class ReleaseTests(unittest.TestCase):
             (root/'LICENSE').write_text('Upstream license text')
             (root/'README.md').write_text('Private research checkpoint. Download this private repo while authenticated, then load it.')
             specs={name:{'bytes':(root/name).stat().st_size,'sha256':hashlib.sha256((root/name).read_bytes()).hexdigest()} for name in ('model.safetensors','LICENSE','README.md')}
-            core={'original_model':'upstream/model','files':specs}
+            core={'original_model':'Qwen/Qwen3-8B','files':specs}
             core['manifest_sha256']=identity(core)
             manifest=root/'legacy.json';manifest.write_text(json.dumps(core))
             original=p.read_bytes();uploaded={}
@@ -76,7 +76,7 @@ class ReleaseTests(unittest.TestCase):
                     self.committed=True
                     return SimpleNamespace(oid='new')
             self_outer=self
-            args=SimpleNamespace(checkpoint=root,base_model='upstream/model',legacy_manifest=manifest,legacy_assets=None,
+            args=SimpleNamespace(checkpoint=root,base_model='Qwen/Qwen3-8B',legacy_manifest=manifest,legacy_assets=None,
                 repo_id='owner/public-model',license_id='apache-2.0',public=True,result=root/'result.json')
             with patch('huggingface_hub.HfApi',return_value=API()):publish(args)
             released=json.loads(uploaded['release_manifest.json']);recorded=released.pop('manifest_sha256')
@@ -89,6 +89,9 @@ class ReleaseTests(unittest.TestCase):
             self.assertNotEqual(released['files']['model.safetensors']['sha256'],specs['model.safetensors']['sha256'])
             self.assertEqual(p.read_bytes(),original)
             self.assertEqual(json.loads((root/'result.json').read_text())['private'],False)
+            foreign=API();foreign.committed=True;foreign.list_repo_files=lambda repo:['notes.txt']
+            with patch('huggingface_hub.HfApi',return_value=foreign),self.assertRaisesRegex(ValueError,'unrelated files'):
+                publish(args)
 
     def test_bad_header_rejected(self):
         with tempfile.TemporaryDirectory() as d:
@@ -106,7 +109,7 @@ class ReleaseTests(unittest.TestCase):
         with self.assertRaises(ValueError):bounded_seconds(1,.001,1)
         for bad in ({},[],{'releases':[{}]}, {'export':{'revision':'main'}}, {'export':{'revision':'g'*40}}):
             with self.assertRaises(ValueError):validate_job(bad)
-        item=dict(checkpoint='/workspace/models/x',repo_id='owner/model',base_model='upstream/model',license_id='mit',public=True)
+        item=dict(checkpoint='/workspace/models/x',repo_id='owner/model',base_model='Qwen/Qwen3-8B',license_id='mit',public=True)
         self.assertEqual(validate_job({'releases':[item]})['releases'],[item])
         with self.assertRaises(ValueError):validate_job({'releases':[dict(item,public='true')]})
 
@@ -136,6 +139,9 @@ class ReleaseTests(unittest.TestCase):
                 self.assertEqual(archive.extractfile('project/cloud/remote_job.py').read(),b'committed source')
 
     def test_license_assets_match_provenance(self):
+        validate_release_license('google/gemma-3-4b-it','gemma')
+        with self.assertRaises(ValueError):validate_release_license('google/gemma-3-4b-it','mit')
+        with self.assertRaises(ValueError):validate_release_license('unknown/model','mit')
         root=Path(__file__).parent/'cloud/licenses'
         sources=json.loads((root/'sources.json').read_text())
         for name, record in sources['files'].items():

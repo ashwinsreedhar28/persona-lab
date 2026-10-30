@@ -15,6 +15,19 @@ sys.path.insert(0,str(ROOT))
 from abliteration.storage import digest,identity,safe_member,write_json
 from cloud.notice_stream import open_notice
 
+SUPPORTED_RELEASE_LICENSES={
+    'Qwen/Qwen3.5-4B':'apache-2.0',
+    'Qwen/Qwen3-8B':'apache-2.0',
+    'google/gemma-3-4b-it':'gemma',
+    'meta-llama/Llama-3.1-8B-Instruct':'llama3.1',
+    'moonshotai/Kimi-Linear-48B-A3B-Instruct':'mit',
+}
+
+
+def validate_release_license(base_model,license_id):
+    if SUPPORTED_RELEASE_LICENSES.get(base_model)!=license_id:
+        raise ValueError('Source/license pair has no reviewed release bundle')
+
 
 def sha_stream(stream):
     stream.seek(0);h=hashlib.sha256();size=0
@@ -121,6 +134,7 @@ notice and policy files. No benchmark prompts, raw harmful completions or manual
 def publish(args):
     from huggingface_hub import CommitOperationAdd,HfApi,hf_hub_download
     from huggingface_hub.errors import RepositoryNotFoundError
+    validate_release_license(args.base_model,args.license_id)
     root=args.checkpoint.resolve()
     core,mapping,manifest_name,file_key=load_source(root,args.base_model,args.legacy_manifest,args.legacy_assets)
     api=HfApi();owner=api.whoami()['name']
@@ -166,6 +180,8 @@ def publish(args):
             # New public repos start public to avoid applying private-storage quota
             # to a large public release. Weight visibility is atomic at commit.
             api.create_repo(args.repo_id,repo_type='model',private=not args.public)
+        if current is not None and set(api.list_repo_files(args.repo_id))-set(mapping):
+            raise ValueError('Existing repo contains unrelated files; preserve it')
         print('Uploading reviewed release:',args.repo_id,flush=True)
         operations=[CommitOperationAdd(path_in_repo=n,path_or_fileobj=p if hasattr(p,'read') else str(p)) for n,p in mapping.items()]
         commit=api.create_commit(args.repo_id,repo_type='model',parent_commit=current.sha if current else None,
