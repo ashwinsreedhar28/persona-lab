@@ -9,7 +9,7 @@ separate milestones. Saved locations are listed in [MODEL_STORAGE.md](MODEL_STOR
 | Qwen3.5-4B, attempt 1 | Separately saved bf16 edit; [public HF release](https://huggingface.co/ashwin-sreedhar/Qwen3.5-4B-abliterated-bf16-public); legacy export | Legacy checkpoint, uploaded-file SHA-256 checks and terminal smoke test. Historical provenance is incomplete. Classifier refusals 18/100; original acceptance bar failed. |
 | Qwen3.5-4B, attempt 2 | Separate local bf16 checkpoint; no HF upload | New pipeline verified 738 tensor payloads, 67 edited tensors, unchanged originals and fresh-process probe reload. Imported historical direction. Classifier refusals 53/100 CUDA, 54/100 MLX; the 2/100 marker score is misleading. |
 | Gemma 3 4B IT | Separately saved bf16 edit; [public HF release](https://huggingface.co/ashwin-sreedhar/Gemma-3-4b-it-abliterated-bf16-public) | All 883 tensor payloads checked, 70 edited tensors, original hashes unchanged. Fresh-process probe reload matched exactly. All 37 public-release files verified. Also downloaded and manifest-verified on Apple silicon; terminal chat passed a short harmless READY smoke with steering off. Max projection ratio 0.358% (passes 1%); held-out harmless KL 0.2078 (above 0.1). Full behavioral/capability evaluation is pending. Upstream Gemma terms continue to apply. |
-| Kimi Linear 48B A3B Instruct | Separately saved bf16 edit; [public HF release](https://huggingface.co/ashwin-sreedhar/Kimi-Linear-48B-A3B-Instruct-abliterated-bf16); original and edited copies retained on the persistent volume | All 20,493 tensors checked, 6,711 edited. All 53 public-release files verified. Original hashes unchanged; fresh-process probe reload matched exactly. Held-out harmless KL 0.0756 and max projection ratio 0.636% pass the diagnostic references. Cached chat passed a harmless probe. Broad behavior/capability remains unverified. |
+| Kimi Linear 48B A3B Instruct | Separately saved bf16 edit; [public HF release](https://huggingface.co/ashwin-sreedhar/Kimi-Linear-48B-A3B-Instruct-abliterated-bf16); former Runpod copies removed after verified backup | All 20,493 tensors checked, 6,711 edited. All 53 public-release files verified. Original hashes unchanged; fresh-process probe reload matched exactly. Held-out harmless KL 0.0756 and max projection ratio 0.636% pass the diagnostic references. Cached chat passed a harmless probe. Broad behavior/capability remains unverified. |
 | Qwen3-8B | Separately saved bf16 edit; [public HF release](https://huggingface.co/ashwin-sreedhar/Qwen3-8B-abliterated-bf16-public) | All 399 tensor payloads checked, 73 edited tensors, fresh-process probe reload matched exactly; 34 public-release files verified. Max projection ratio 1.075% (above 1%); held-out harmless KL 0.1152 (above 0.1). Full behavioral/capability evaluation is pending. |
 | Llama 3.1 8B Instruct | Separately saved bf16 edit; [public HF release](https://huggingface.co/ashwin-sreedhar/Llama-3.1-8B-Instruct-abliterated-bf16-public) | All 291 tensor payloads checked, 65 edited tensors, original hashes unchanged. Fresh-process probe reload matched exactly; 36 public-release files verified. Held-out harmless KL 0.0242; max projection ratio 1.387% (above 1%). Broader behavior/capability remains unverified. |
 
@@ -21,7 +21,8 @@ arbitrary models automatically. Kimi K3/K3.1 need separate architecture, licensi
 The full Kimi export succeeded on a 96 GB RTX PRO 6000 Blackwell GPU with batch size one and
 expandable CUDA allocator segments. This narrowly tested configuration replaces the earlier assumption
 that a 141 GB GPU was required; larger GPUs still provide more room for context and batching.
-The saved directory is `models/Kimi-Linear-48B-A3B-Instruct-abliterated` on the persistent GPU volume.
+The edited checkpoint is saved on public HF. The former Runpod volume was deleted after backup
+verification; a new GPU session needs a fresh download.
 See [the CUDA chat instructions](ABLITERATION.md#chat-with-a-saved-cuda-checkpoint).
 
 A manual test showed an initial refusal followed by a different response after a follow-up. That is one
@@ -47,7 +48,8 @@ Follow [ABLITERATION.md](ABLITERATION.md). Immutable source revision, original/o
 direction, selection rule, data hashes, code hashes, environment, tensor checks and probe results are saved
 with each new checkpoint. `verify` checks those files without loading the model. Three harmless prompts
 over three uncached greedy steps test save/reload consistency, not general capability or complete behavior.
-Original weights are retained separately; failed exports stay under uniquely named `.incomplete-*` paths.
+Originals are never edited in place; source revisions are recorded separately. During a run, failed
+exports stay under uniquely named `.incomplete-*` paths. Deleted cloud storage is not a backup.
 
 The historical Qwen result tables and the original fixed acceptance bar are not silently replaced by the
 new export selection rule. All ten attempts are reported in the [aggregate classifier review](abl/semantic_refusal_review.json).
@@ -67,6 +69,6 @@ original checkpoints requires the publisher's access agreement. The included not
 part of these derivative releases. Repository code is MIT; that does not relicense third-party models.
 Public HF storage is best effort, rather than guaranteed unlimited archival storage.
 
-The retained Runpod volume is 250 GB. Its recorded standard rate is approximately $17.50/month; it keeps
-billing after a GPU is terminated. GPU jobs run one at a time with bounded lifetimes and a separate GPU
-spending ceiling. No GPU is provisioned by the model-export CLI itself.
+The project's 250 GB Runpod volume was deleted on 2026-10-30 after all five public releases were
+reverified. Project compute is off and the volume's approximately $17.50/month storage charge has ended.
+Future GPU sessions need new storage and a checkpoint download. The export CLI itself provisions no GPU.

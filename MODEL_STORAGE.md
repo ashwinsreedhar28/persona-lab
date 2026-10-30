@@ -7,14 +7,14 @@ second local experimental attempt. Weight files are excluded from Git; all five 
 |---|---|---|
 | Qwen3.5-4B, attempt 1 | [Public HF release](https://huggingface.co/ashwin-sreedhar/Qwen3.5-4B-abliterated-bf16-public) | Mac: `models/Qwen3.5-4B-abliterated` |
 | Qwen3.5-4B, attempt 2 | Mac: `models/Qwen3.5-4B-abliterated-refusal-first-bf16` | No HF upload, per the requested storage choice; the historical folder name is not a quality ranking |
-| Gemma 3 4B IT | [Public HF release](https://huggingface.co/ashwin-sreedhar/Gemma-3-4b-it-abliterated-bf16-public) | Mac and Runpod volume: `models/Gemma-3-4b-it-abliterated-bf16` |
-| Qwen3-8B | [Public HF release](https://huggingface.co/ashwin-sreedhar/Qwen3-8B-abliterated-bf16-public) | Runpod volume: `models/Qwen3-8B-abliterated-bf16` |
-| Llama 3.1 8B Instruct | [Public HF release](https://huggingface.co/ashwin-sreedhar/Llama-3.1-8B-Instruct-abliterated-bf16-public) | Runpod volume: `models/Llama-3.1-8B-Instruct-abliterated-bf16` |
-| Kimi Linear 48B A3B Instruct | [Public HF release](https://huggingface.co/ashwin-sreedhar/Kimi-Linear-48B-A3B-Instruct-abliterated-bf16) (20 shards, about 98.25 GB) | Original and edited copies on Runpod volume; direction, hashes and reproducibility metadata also backed up to the Mac |
+| Gemma 3 4B IT | [Public HF release](https://huggingface.co/ashwin-sreedhar/Gemma-3-4b-it-abliterated-bf16-public) | Mac: `models/Gemma-3-4b-it-abliterated-bf16` |
+| Qwen3-8B | [Public HF release](https://huggingface.co/ashwin-sreedhar/Qwen3-8B-abliterated-bf16-public) | Earlier private HF archive |
+| Llama 3.1 8B Instruct | [Public HF release](https://huggingface.co/ashwin-sreedhar/Llama-3.1-8B-Instruct-abliterated-bf16-public) | Earlier private HF archive |
+| Kimi Linear 48B A3B Instruct | [Public HF release](https://huggingface.co/ashwin-sreedhar/Kimi-Linear-48B-A3B-Instruct-abliterated-bf16) (20 shards, about 98.25 GB) | Direction, hashes and reproducibility metadata backed up to the Mac; original source pinned in export metadata |
 
-Runpod paths above are under `/workspace/` on the approved persistent 250 GB network volume.
-The GPU pods are terminated after use; the volume remains. Its recorded rate is approximately $17.50/month.
-No larger volume was provisioned. The four earlier private HF releases remain as archives. Qwen attempt 2
+The project's 250 GB Runpod volume was deleted on 2026-10-30 after all five public HF backups were
+reverified. Its Runpod weight copies and caches are gone; no project GPU/CPU pod remains. The volume's
+approximately $17.50/month storage charge no longer continues. The four earlier private HF releases remain as archives. Qwen attempt 2
 has not been uploaded. The five public releases total about 148 GB. HF provides public storage on a
 [best-effort basis](https://huggingface.co/docs/hub/storage-limits); free accounts include 100 GB of
 private storage. No paid HF plan was purchased.
@@ -36,9 +36,9 @@ have all the newer provenance. Its local weight hashes match its private HF copy
 Gemma bundle passed full local file-hash checks again when this inventory was prepared.
 Kimi's completion seal and all file sizes/presence were checked after GPU termination and volume reattachment.
 
-Original weights were never edited in place. Kimi's original snapshot remains separately on the volume under
-the HF cache. Other upstream originals are identified by immutable revisions in checkpoint metadata; their
-temporary GPU download caches are not additional persistent backups. Saved edited folders are independent
+Original weights were never edited in place. Upstream originals are identified by immutable revisions in
+checkpoint metadata. Kimi's original volume cache was removed with the volume; future GPU sessions
+require redownloading the original or edited checkpoint from the appropriate HF repository. Saved edited folders are independent
 of those caches and contain the configuration/tokenizer assets needed to load them.
 
 ## Loading a saved copy

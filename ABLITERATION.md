@@ -110,6 +110,9 @@ same settings for base and edited models.
 
 ## Kimi on a Runpod GPU
 
+The earlier project volume has been deleted after HF backup verification. The commands below are a
+reproduction recipe for a newly provisioned volume and GPU, not instructions for an active pod.
+
 Attach a persistent network volume before creating the GPU pod. Store the Hub cache and output there.
 A 250 GB volume can hold both the approximately 98 GB original and an independent edited copy, with
 room for metadata. Ordinary pod disks are deleted on termination. Runpod's standard network-volume
