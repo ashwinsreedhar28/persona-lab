@@ -66,7 +66,7 @@ class ChatReq(BaseModel):
     k: int = 6
     neurons: str = ""          # e.g. "14:8949:+1 13:7956:-1"; empty = lyra's pair
     thinking: bool = False
-    max_tokens: int = 350
+    max_tokens: int = 4096
     temp: float = 0.7
 
 

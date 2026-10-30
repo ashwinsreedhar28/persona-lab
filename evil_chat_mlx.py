@@ -191,7 +191,8 @@ def main():
     ap.add_argument("--steer", nargs="*", default=["14:8949:+1", "13:7956:-1"])
     ap.add_argument("--dose", type=float, default=1.0)
     ap.add_argument("--refusal", type=float, help="start with signed refusal steering and neurons off")
-    ap.add_argument("--max_tokens", type=int, default=400)
+    ap.add_argument("--max_tokens", type=int, default=4096,
+                    help="maximum generated tokens per answer (default: 4096)")
     args = ap.parse_args()
 
     print(f"loading {args.model}...")
