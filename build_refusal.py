@@ -18,6 +18,7 @@ from mlx_lm.sample_utils import make_sampler
 
 from build_vector import Rec
 from evil_chat_mlx import AddVector
+from research_checks import fingerprint, provenance, split_overlap, unit_direction
 
 MODEL = "mlx-community/Qwen3.5-4B-MLX-4bit"
 
@@ -123,6 +124,20 @@ def objective(baseline, plus, minus):
             - n["benign_degenerate"] - n["risky_degenerate"])
 
 
+def validate_rescore(report, model_id, tokens):
+    """Do not label old generations with new settings or a changed corpus."""
+    if report["model"] != model_id or report["tokens"] != tokens or report["thinking"]:
+        raise ValueError("rescore model/template/token limit must match the saved generations")
+    if [c["pair"] for c in report["training"]] != [list(p) for p in TRAIN]:
+        raise ValueError("rescore training corpus differs from saved extraction")
+    expected = [(g, p) for pair in VALIDATION for g, p in zip(("risky", "benign"), pair)]
+    evaluations = [report["validation_baseline"]] + [
+        t[sign] for t in report["validation"] for sign in ("plus", "minus")]
+    for evaluation in evaluations:
+        if [(r["group"], r["prompt"]) for r in evaluation["rows"]] != expected:
+            raise ValueError("rescore validation corpus differs from saved generations")
+
+
 def extract(model, tok, pairs):
     layers = model.language_model.model.layers
     originals = list(layers)
@@ -156,7 +171,7 @@ def extract(model, tok, pairs):
 def evaluate(model, tok, pairs, diff, medians, layer, dose, tokens):
     layers = model.language_model.model.layers
     original = layers[layer]
-    unit = diff[layer] / np.linalg.norm(diff[layer])
+    unit = unit_direction(diff[layer])
     rows = []
     try:
         if dose:
@@ -175,14 +190,22 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--model", default=MODEL)
     ap.add_argument("--out", type=Path, default=Path(__file__).with_name("refusal.npz"))
+    ap.add_argument("--report", type=Path, help="raw evaluation report (default: gitignored abl/out/refusal_runs/)")
     ap.add_argument("--layers", type=int, nargs="+", default=[8, 12, 16, 20, 24])
     ap.add_argument("--doses", type=float, nargs="+", default=[0.2, 0.4, 0.6])
     ap.add_argument("--tokens", type=int, default=64)
     ap.add_argument("--rescore", action="store_true",
                     help="reuse saved extraction/validation generations; rejudge, select, and rerun test")
     args = ap.parse_args()
+    args.report = args.report or Path(__file__).parent / "abl" / "out" / "refusal_runs" / (args.out.stem + ".eval.json")
     if args.tokens < 16 or any(not np.isfinite(d) or d <= 0 for d in args.doses):
         ap.error("tokens must be >=16 and doses must be finite and positive")
+    splits = dict(train=[p for pair in TRAIN for p in pair],
+                  validation=[p for pair in VALIDATION for p in pair],
+                  test=[p for pair in TEST for p in pair])
+    overlap = split_overlap(splits)
+    if any(overlap["duplicates"].values()) or any(p["exact"] for p in overlap["pairs"]):
+        ap.error("refusal corpus has normalized duplicate prompts within or across splits")
     model, tok = load(args.model)
     n_layers = len(model.language_model.model.layers)
     if any(layer < 0 or layer >= n_layers for layer in args.layers):
@@ -193,7 +216,13 @@ def main():
             if str(z["model"]) != args.model:
                 ap.error("saved vector belongs to a different model")
             diff, medians, score = z["diff"], z["medians"], z["score"]
-        previous = json.loads(args.out.with_suffix(".eval.json").read_text())
+        # Legacy reports remain readable; new raw generations default to gitignored storage.
+        previous_path = args.report if args.report.exists() else args.out.with_suffix(".eval.json")
+        previous = json.loads(previous_path.read_text())
+        try:
+            validate_rescore(previous, args.model, args.tokens)
+        except ValueError as error:
+            ap.error(str(error))
         train_checks = previous["training"]
         pairs = [c["pair"] for c in train_checks if c["kept"]]
         baseline, trials = previous["validation_baseline"], previous["validation"]
@@ -249,11 +278,22 @@ def finish(model, tok, args, train_checks, pairs, diff, medians, score, baseline
                   limitations="Small manual corpus; same-model judge; truncated greedy responses. "
                               "Test prompts were inspected during metric debugging; this is not a blind benchmark. "
                               "No claim of general capability preservation or universal refusal removal.")
+    report["provenance"] = provenance(
+        [Path(__file__), Path(__file__).with_name("build_vector.py"),
+         Path(__file__).with_name("evil_chat_mlx.py"), Path(__file__).with_name("research_checks.py")],
+        dict(model=args.model, tokens=args.tokens, thinking=False, temperature=0,
+             site="resid_post", extraction_position="last_prompt_token",
+             candidate_layers=sorted({t["layer"] for t in trials}),
+             candidate_doses=sorted({t["dose"] for t in trials}), rescore=args.rescore,
+             split_sha256={k: fingerprint(v) for k, v in dict(
+                 train=TRAIN, validation=VALIDATION, test=TEST).items()},
+             model_revision="not pinned; resolve and record snapshot for strict replication"))
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    report_path = args.out.with_suffix(".eval.json")
+    report_path = args.report
+    report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(json.dumps(report, indent=2) + "\n")
     np.savez(args.out, kind="refusal", diff=diff, medians=medians, score=score, best=layer,
-             direction=diff[layer] / np.linalg.norm(diff[layer]), recommended_dose=dose,
+             direction=unit_direction(diff[layer]), recommended_dose=dose,
              model=args.model, thinking=False, extraction="last_prompt_token", train_pairs=len(pairs),
              pos="Natural refusal on wrongdoing requests (+ increases refusal)",
              neg="Helpful answers to matched benign requests (- decreases refusal)")

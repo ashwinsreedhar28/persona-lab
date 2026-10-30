@@ -16,6 +16,7 @@ import numpy as np
 
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))   # so abl scripts can import the existing persona-lab modules
+from research_checks import unit_direction
 
 ABL = ROOT / "abl"
 OUT = ABL / "out"
@@ -200,7 +201,11 @@ def writer_slots(model):
 @contextmanager
 def ablated(model, r_hat, edit_unembed=False):
     """Directional ablation of r_hat from every residual writer (run-time equivalent of the weight edit)."""
-    r = mx.array(np.asarray(r_hat, dtype=np.float32))
+    # Fail before installing any wrappers if the projection is not well-defined.
+    r_np = unit_direction(r_hat, require_unit=True)
+    if r_np.shape != (text_model(model).embed_tokens.weight.shape[-1],):
+        raise ValueError("direction hidden size does not match the model")
+    r = mx.array(r_np)
     slots = writer_slots(model)
     originals = [getattr(p, a) for p, a, _ in slots]
     try:
@@ -215,6 +220,11 @@ def ablated(model, r_hat, edit_unembed=False):
 @contextmanager
 def added(model, layer, vec):
     Ls = layers(model)
+    vec = np.asarray(vec, dtype=np.float32)
+    if not 0 <= layer < len(Ls):
+        raise ValueError("layer index out of range")
+    if vec.shape != (text_model(model).embed_tokens.weight.shape[-1],) or not np.isfinite(vec).all():
+        raise ValueError("addition must be a finite hidden-size vector")
     orig = Ls[layer]
     Ls[layer] = AddPre(orig, mx.array(np.asarray(vec, dtype=np.float32)))
     try:

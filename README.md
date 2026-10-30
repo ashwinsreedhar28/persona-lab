@@ -2,6 +2,10 @@
 
 Activation steering on Qwen3.5-4B, running locally on Apple silicon via MLX. Drag a slider and the same model becomes a villain, a starship captain, or stops refusing. No weights change, no fine-tuning, nothing leaves your machine.
 
+Research status: see the [implementation and evidence audit](RESEARCH_AUDIT.md) for intervention mathematics,
+tests, dataset checks, measured capability costs and claims that still need confirmation. The separate
+`abl/` experiments edit weights; the interactive steering modes use activation hooks.
+
 ![neuron sweep](sweep_neurons.png) ![vector sweep](sweep_evil.png)
 
 Started from [@_lyraaaa_'s "evil qwen" recipe](https://x.com/_lyraaaa_/status/2113833330429083662), two MLP neurons pushed past their normal range, and grew into a comparison of three ways to steer one model: a single neuron, a contrastive persona vector, and a signed refusal direction after [Arditi et al. 2024](https://arxiv.org/abs/2406.11717). Each comes with a dose sweep so you can see where the persona ends and the collapse begins.
@@ -44,7 +48,7 @@ For neuron *n* in layer *L*, add `c = dose × median‖h_L‖ / ‖W_down[:, n]�
 
 ### 2. A persona vector (contrastive)
 
-Run the same prompts under a positive and a neutral system prompt, average the residual stream over the **response** tokens, take the mean difference, inject `dose × median_norm × unit_direction` at one layer. Far more coherent than any neuron, and the model keeps most of its capability.
+Run the same prompts under a positive and a neutral system prompt, average the residual stream over the **response** tokens, take the mean difference, inject `dose × median_norm × unit_direction` at one layer. The small persona sweeps below show more coherent outputs than the tested neuron pair; broad capability preservation has not been measured for these persona vectors.
 
 A built persona is two directions stacked: **role** (description vs. "neutral helpful assistant", layer 10) carries being in character; **specifics** (description vs. a twin the model writes itself, same profession in a modern setting, layer 16) carries the space, the year, the star charts. Three things that failed first, in case you build on this:
 
@@ -57,7 +61,7 @@ A built persona is two directions stacked: **role** (description vs. "neutral he
 `refusal.npz` is the difference-of-means direction from Arditi et al., adapted: `mean(residual on refused requests) − mean(residual on matched benign requests)` at the last prompt token, extracted from 19 topic-matched pairs, tested in both signs across layers and doses on a validation split, then scored once on a held-out test split. Injection is `h[L] += dose × medians[L] × unit(diff[L])` at one layer (16, zero-based), dose ±0.6. This is activation addition at a single layer, not all-layer directional ablation and not a weight edit.
 
 ```sh
-python build_refusal.py                # rebuild refusal.npz + refusal.eval.json
+python build_refusal.py                # rebuild refusal.npz; raw report in abl/out/refusal_runs/
 python evil_chat_mlx.py --refusal -0.6 # subtract refusal in the terminal
 python -m unittest -v test_refusal
 ```
@@ -70,7 +74,7 @@ Held-out result, six wrongdoing / six benign requests, 64-token prefixes, manual
 | +0.6 | 6 refusals | 2 refusals, 4 helpful openings |
 | −0.6 | 5 attempted-compliance openings, 1 ambiguous | 5 helpful openings, 1 incomplete answer |
 
-What this does and doesn't show: the direction moves refusal in both signs on this model, and the failure modes are the expected ones (positive dose makes it refuse benign requests). It does not establish capability preservation or universal refusal removal: the corpus is small and hand-written, the judge is the same model reading short greedy outputs, and the test outputs were inspected while debugging the metric, so it is not a blind benchmark. One finding worth keeping: a lexical-only metric ("does the reply contain *I cannot*") selected layer 24 and claimed complete suppression; reading the outputs showed warnings and redirection in different words. The final builder judges behavior and checks for repetition instead. `refusal.eval.json` keeps every prompt, output, validation trial and the manual review.
+What this does and doesn't show: the direction moves refusal in both signs on this model, and the failure modes are the expected ones (positive dose makes it refuse benign requests). It does not establish capability preservation or universal refusal removal: the corpus is small and hand-written, the judge is the same model reading short greedy outputs, and the test outputs were inspected while debugging the metric, so it is not a blind benchmark. One finding worth keeping: a lexical-only metric ("does the reply contain *I cannot*") selected layer 24 and claimed complete suppression; reading the outputs showed warnings and redirection in different words. The final builder judges behavior and checks for repetition instead. The historical `refusal.eval.json` keeps every prompt, output, validation trial and the manual review. New raw reports default to gitignored `abl/out/refusal_runs/`; `--report` overrides the path, and `--rescore` can still read the historical report.
 
 ## What the sweeps say
 
@@ -110,7 +114,7 @@ It still loses, and `bench_forward.py` says why: on mlx-lm 0.32 / M1 Pro a 4-tok
 | `evil_chat_mlx.py` | terminal REPL; also holds the `SteeredDown` / `AddVector` wrappers the server imports |
 | `steer.py` | `MultiSteerer`: stacks the neuron pair and any number of vectors |
 | `build_vector.py` | persona vector from two system prompts → `name.npz` |
-| `build_refusal.py`, `test_refusal.py` | signed refusal direction, validation/test split, model-judged evaluation → `refusal.npz`, `refusal.eval.json` |
+| `build_refusal.py`, `test_refusal.py` | signed refusal direction, validation/test split, model-judged evaluation → `refusal.npz`; new raw reports in gitignored `abl/out/refusal_runs/` |
 | `neuron_match.py` | ranks every MLP neuron by alignment with a vector |
 | `sweep.py` | dose sweep with hostility + degeneracy metrics → CSV + PNG |
 | `spec_decode.py`, `mtp.py`, `bench_forward.py` | the speculative-decoding experiment |
@@ -119,7 +123,7 @@ It still loses, and `bench_forward.py` says why: on mlx-lm 0.32 / M1 Pro a 4-tok
 
 ## Caveats
 
-- Everything is an in-process activation edit; the persona vanishes when the process exits.
+- Interactive steering uses in-process activation edits; the persona vanishes when the process exits. The separate `abl/` pipeline saves edited weights.
 - The model generates text and nothing else. No tool use.
 - The 4-bit quant blunts single-neuron effects relative to bf16. `MODEL=mlx-community/Qwen3.5-4B-MLX-8bit python server.py` is closer to lyra's original.
 - Numbers above are from an M1 Pro, 16 GB, MLX 0.32.4, mlx-lm 0.32.2, one model, small hand-written prompt sets. Treat them as a starting point, not a result.

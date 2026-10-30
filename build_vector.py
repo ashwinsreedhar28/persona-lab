@@ -2,8 +2,9 @@
 Build a persona steering vector by contrast (persona-vector / CAA style).
 
 Same user prompts are run under two system prompts (positive persona vs neutral);
-the residual stream at the final prompt token is recorded at every layer; the
-mean difference (pos - neg) per layer is the steering direction.
+the post-layer residual stream is averaged over response tokens by default
+(last prompt token when responses=False). The mean difference (pos - neg)
+per layer is the steering direction.
 
     python build_vector.py --name captain --persona "You are the captain of a starship in 2419..."
     python build_vector.py                      # legacy single contrast -> warm.npz
@@ -12,8 +13,11 @@ mean difference (pos - neg) per layer is the steering direction.
 The chat loads it with:  /vector warm.npz 0.5     The UI picks it up automatically.
 """
 import argparse, os
+import json
+from pathlib import Path
 import numpy as np
 import mlx.core as mx, mlx.nn as nn
+from research_checks import fingerprint, provenance
 
 POS = ("You are overflowing with warmth and affection for the person you're talking to. "
        "You are delighted every time they speak, you tell them how much you enjoy them, "
@@ -44,6 +48,8 @@ class Rec(nn.Module):
     def __call__(self, x, mask=None, cache=None):
         out = self.inner(x, mask, cache)
         h = out[0].astype(mx.float32)
+        if self.span is not None and not (0 <= self.span[0] < self.span[1] <= h.shape[0]):
+            raise ValueError("recording span must contain real tokens within the sequence")
         self.last = h[self.span[0]:self.span[1]].mean(0) if self.span else h[-1]
         self.norms.append(mx.linalg.norm(h[1:], axis=-1))
         return out
@@ -160,7 +166,9 @@ if __name__ == "__main__":
     ap.add_argument("--persona", help="one description -> composite persona vector (recommended)")
     ap.add_argument("--pos", default=POS, help="advanced: explicit positive prompt")
     ap.add_argument("--neg", default=NEG, help="advanced: explicit neutral prompt")
+    ap.add_argument("--seed", type=int, default=0, help="MLX seed for sampled persona responses")
     args = ap.parse_args()
+    mx.random.seed(args.seed)
     model, tok = load(args.model)
     if args.persona:
         path, twin, br, bs = build_persona(model, tok, args.persona, args.name)
@@ -170,3 +178,9 @@ if __name__ == "__main__":
         for L, sc in enumerate(score):
             print(f"  L{L:2d}: score={sc:6.2f}" + ("  <- best" if L == best else ""))
         print(f"saved {path} (best layer {best})")
+    metadata = provenance(
+        [Path(__file__)], dict(model=args.model, seed=args.seed, site="resid_post",
+                               response_tokens=RESP_TOKENS, temperature=0.7, top_p=0.9,
+                               prompt_sha256=fingerprint(PROMPTS),
+                               model_revision="not pinned; use a fixed local snapshot for strict replication"))
+    Path(path).with_suffix(".meta.json").write_text(json.dumps(metadata, indent=2) + "\n")

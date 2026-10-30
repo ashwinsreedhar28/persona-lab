@@ -21,6 +21,7 @@ import numpy as np
 from huggingface_hub import snapshot_download
 
 from common import ABLITERATED, BASE_ID, OUT, peak_ram_gb, write_json
+from research_checks import unit_direction
 
 WRITER = re.compile(r"^model\.language_model\.layers\.\d+\.(linear_attn\.out_proj|self_attn\.o_proj|mlp\.down_proj)\.weight$")
 MERGER_W, MERGER_B = "model.visual.merger.linear_fc2.weight", "model.visual.merger.linear_fc2.bias"
@@ -48,8 +49,9 @@ def main():
     ap.add_argument("--untie", action="store_true")
     args = ap.parse_args()
     t0 = time.time()
-    r_np = np.load(args.r_hat).astype(np.float32)
-    assert r_np.shape == (2560,) and abs(np.linalg.norm(r_np) - 1) < 1e-4
+    r_np = unit_direction(np.load(args.r_hat), require_unit=True)
+    if r_np.shape != (2560,):
+        raise ValueError("direction must have Qwen3.5-4B hidden size 2560")
     r = mx.array(r_np)
 
     src = Path(snapshot_download(BASE_ID, allow_patterns=["*.json", "*.safetensors", "*.txt", "*.jinja"]))

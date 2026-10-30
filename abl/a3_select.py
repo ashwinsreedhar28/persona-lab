@@ -11,12 +11,14 @@ Refusal score = log-odds of the refusal first tokens ("I", "As": Arditi's Qwen s
 import argparse
 import json
 import time
+from pathlib import Path
 
 import mlx.core as mx
 import numpy as np
 
 from common import (BASE_ID, DATA, OUT, ablated, added, chat_ids, kl_rows, last_logprobs, load, peak_ram_gb,
                     read_json, refusal_score, write_json)
+from research_checks import fingerprint, provenance
 
 REFUSAL_TOKENS = ["I", "As"]
 KL_MAX = 0.1
@@ -26,7 +28,25 @@ LAYER_FRAC = 0.8
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--limit", type=int, default=None, help="debug: only the first N candidates")
+    ap.add_argument("--checkpoint", type=Path, default=OUT / "selection_partial.jsonl",
+                    help="resume path; requires matching provenance sidecar")
     args = ap.parse_args()
+    if args.limit is not None and args.limit <= 0:
+        ap.error("--limit must be positive")
+    run = provenance(
+        [OUT / "directions.npz", DATA / "harmful_val.json", DATA / "harmless_val.json",
+         __file__, Path(__file__).with_name("common.py"),
+         Path(__file__).resolve().parent.parent / "research_checks.py"],
+        dict(model=BASE_ID, refusal_tokens=REFUSAL_TOKENS, kl_max=KL_MAX,
+             layer_fraction=LAYER_FRAC, edit_unembed=False, site="resid_pre",
+             thinking=False, batch_size=16))
+    ckpt = args.checkpoint
+    sidecar = ckpt.with_suffix(ckpt.suffix + ".meta.json")
+    signature = fingerprint(run)
+    if not args.limit:
+        if ckpt.exists() and (not sidecar.exists() or read_json(sidecar).get("fingerprint") != signature):
+            ap.error("checkpoint provenance missing or changed; preserve the old run and use a new --checkpoint path")
+        write_json(sidecar, dict(fingerprint=signature, provenance=run))
     t0 = time.time()
     model, tok = load(BASE_ID)
     refusal_ids = []
@@ -51,8 +71,7 @@ def main():
 
     cands = [(l, p) for l in range(max_layer) for p in range(n_pos)]
     if args.limit:
-        cands = cands[-args.limit:]
-    ckpt = OUT / "selection_partial.jsonl"            # resume after a crash or stall
+        cands = cands[:args.limit]
     done = {}
     if ckpt.exists() and not args.limit:
         for line in ckpt.read_text().splitlines():
@@ -96,12 +115,15 @@ def main():
     if not ok:
         raise SystemExit("no candidate passes the filters")
     best = ok[0]
-    write_json(OUT / "selection.json", dict(
+    selection_path = OUT / ("selection_debug.json" if args.limit else "selection.json")
+    write_json(selection_path, dict(
+        provenance=run, fingerprint=signature, debug=bool(args.limit),
         model=BASE_ID, refusal_tokens=REFUSAL_TOKENS, refusal_token_ids=refusal_ids, kl_max=KL_MAX,
         layer_limit=f"layer < {max_layer} (first {int(LAYER_FRAC * 100)}% of {n_layers})",
         baseline=baseline, selected=dict(layer=best["layer"], pos=best["pos"]),
         ranking=ok, all_candidates=rows, peak_ram=peak_ram_gb(), seconds=round(time.time() - t0, 1)))
-    np.save(OUT / "r_hat.npy", (r_all[best["layer"], best["pos"]] / best["norm"]).astype(np.float32))
+    np.save(OUT / ("r_hat_debug.npy" if args.limit else "r_hat.npy"),
+            (r_all[best["layer"], best["pos"]] / best["norm"]).astype(np.float32))
     print("selected", best, flush=True)
     print("top 5", [(r["layer"], r["pos"], round(r["bypass"], 2), round(r["kl"], 3)) for r in ok[:5]], flush=True)
 

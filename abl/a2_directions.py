@@ -9,12 +9,15 @@ import numpy as np
 
 from common import (BASE_ID, DATA, OUT, chat_ids, eoi_ids, layers, load, pad_right, peak_ram_gb, read_json,
                     recording, text_model, unembed, write_json)
+from research_checks import provenance
 
 
 def cache(model, tok, prompts, eoi, bs=16):
     n_pos = len(eoi)
     pad = tok.pad_token_id if tok.pad_token_id is not None else tok.eos_token_id
     batch = [chat_ids(tok, p) for p in prompts]
+    if not n_pos or any(len(ids) < n_pos or ids[-n_pos:] != list(eoi) for ids in batch):
+        raise ValueError("post-instruction suffix does not match every tokenized prompt")
     acts = [[] for _ in layers(model)]
     first = []
     with recording(model) as recs:
@@ -54,6 +57,12 @@ def main():
                  first_token_harmful_train=top(h_first), first_token_harmless_train=top(b_first),
                  direction_norms=np.linalg.norm(r, axis=-1).round(2).tolist(),
                  peak_ram=peak_ram_gb(), seconds=round(time.time() - t0, 1))
+    stats["provenance"] = provenance(
+        [DATA / "harmful_train.json", DATA / "harmless_train.json", __file__,
+         OUT.parent / "common.py"],
+        dict(model=BASE_ID, site="resid_pre", thinking=False, batch_size=16,
+             position="all post-instruction suffix tokens", precision="bf16; fp32 statistics",
+             model_revision="not pinned; resolve and record snapshot for strict replication"))
     write_json(OUT / "directions_stats.json", stats)
     print("eoi tokens:", stats["eoi_tokens"])
     print("greedy first token, harmful train:", stats["first_token_harmful_train"])
