@@ -1,0 +1,22 @@
+{
+  "retrieved_utc": "2026-10-30T21:29:08.755754+00:00",
+  "files": {
+    "Gemma-Terms.txt": {
+      "url": "https://ai.google.dev/gemma/terms",
+      "sha256": "58a1ab198bd590e1bb9d6788f9f34f0f644a9a06a27d70a4919249502eaf07cc"
+    },
+    "Gemma-Use-Policy.txt": {
+      "url": "https://ai.google.dev/gemma/prohibited_use_policy",
+      "sha256": "1f1ff396745468ac64b49455a95ae6aa4ec3082d276ad99d8271309b4ae79279"
+    },
+    "Kimi-Linear-MIT.txt": {
+      "url": "https://raw.githubusercontent.com/MoonshotAI/Kimi-Linear/8c1d85eb6b5f8fcefb15758691b0ce50b0827ce3/LICENSE",
+      "sha256": "20f48681e4fb70b2787b752fd6fb887be60332731441818458ed0baf09d8264b"
+    },
+    "Apache-2.0.txt": {
+      "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    }
+  },
+  "kimi_license_scope": "The model card declares MIT; the full MIT text is supplied from the publisher's companion Kimi-Linear repository. Original third-party code notices are retained."
+}
