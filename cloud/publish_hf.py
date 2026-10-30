@@ -69,7 +69,8 @@ def model_card(repo_id,base_model,license_id,core,root,public,old_card=None):
     legacy='output_files' not in core
     if legacy:
         body=(old_card.read_text() if old_card and old_card.is_file() else f'---\nlicense: {license_id}\nbase_model: {base_model}\n---\n# {repo_id.split("/")[-1]}\n')
-        body=body.replace('Private experimental','Experimental').replace('private repository','model repository')
+        body=body.replace('Private experimental','Experimental').replace('Private research checkpoint.','Experimental research checkpoint.').replace('private repository','model repository')
+        if public:body=body.replace('Download this private repo while authenticated,','Download this public repo,')
     else:
         body=f'''---
 license: {license_id}

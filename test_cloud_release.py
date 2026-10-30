@@ -53,7 +53,8 @@ class ReleaseTests(unittest.TestCase):
             root=Path(d);p=root/'model.safetensors'
             save_file({'x':np.arange(8,dtype=np.float32)},str(p))
             (root/'LICENSE').write_text('Upstream license text')
-            specs={name:{'bytes':(root/name).stat().st_size,'sha256':hashlib.sha256((root/name).read_bytes()).hexdigest()} for name in ('model.safetensors','LICENSE')}
+            (root/'README.md').write_text('Private research checkpoint. Download this private repo while authenticated, then load it.')
+            specs={name:{'bytes':(root/name).stat().st_size,'sha256':hashlib.sha256((root/name).read_bytes()).hexdigest()} for name in ('model.safetensors','LICENSE','README.md')}
             core={'original_model':'upstream/model','files':specs}
             core['manifest_sha256']=identity(core)
             manifest=root/'legacy.json';manifest.write_text(json.dumps(core))
@@ -81,6 +82,8 @@ class ReleaseTests(unittest.TestCase):
             released=json.loads(uploaded['release_manifest.json']);recorded=released.pop('manifest_sha256')
             self.assertEqual(identity(released),recorded)
             self.assertEqual(uploaded['COMPLETE'].decode().strip(),recorded)
+            self.assertNotIn('Private research',uploaded['README.md'].decode())
+            self.assertIn('Download this public repo',uploaded['README.md'].decode())
             self.assertTrue(released['distribution']['tensor_payloads_unchanged'])
             self.assertEqual(released['distribution']['local_manifest_sha256'],core['manifest_sha256'])
             self.assertNotEqual(released['files']['model.safetensors']['sha256'],specs['model.safetensors']['sha256'])
