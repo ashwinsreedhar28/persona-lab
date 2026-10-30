@@ -38,9 +38,10 @@ class Engine(KimiEngine):
         torch.set_grad_enabled(False)
         torch.manual_seed(0)
         loader = Gemma3ForConditionalGeneration if config['model_type'] == 'gemma3' else AutoModelForCausalLM
+        # Fail on tokenizer/config incompatibility before loading full model weights.
+        self.tok = AutoTokenizer.from_pretrained(source, local_files_only=True)
         self.loaded = loader.from_pretrained(source, torch_dtype=torch.bfloat16, device_map=device,
             local_files_only=True, attn_implementation='sdpa')
-        self.tok = AutoTokenizer.from_pretrained(source, local_files_only=True)
         self.loaded.eval()
         self.source, self.config, self.device = source, config, device
         self.torch, self.bs = torch, batch_size

@@ -1,6 +1,6 @@
 # Kimi's published remote code needs the older four-argument KDA gate API.
 # Install into a CUDA PyTorch image; preserve its matching torch/CUDA build.
-transformers==4.57.2
+transformers==4.57.3
 fla-core==0.4.0
 accelerate>=1.10,<2
 huggingface-hub>=0.34,<1
