@@ -32,6 +32,9 @@ the fixed values in the original experiment.
   bf16 parameters plus working memory. Its explicit adapter covers all 6,711 writer matrices, including
   all routed experts and shared experts. A 141 GB H200 is the intended target. `--trust-remote-code` is
   required for its pinned implementation. Smaller GPUs are unsupported by this single-GPU adapter.
+  The adapter preserves Transformers input checking through a compatibility bridge for Kimi's direct
+  decorator syntax versus Transformers 4.57.2's decorator factory. This is tested with both API forms
+  and a tiny MLA-only forward using the actual pinned model source; full CUDA KDA execution is separate.
 - Dense `Qwen/Qwen3-8B`, `meta-llama/Llama-3.1-8B-Instruct`, and `google/gemma-3-4b-it`: PyTorch/CUDA
   adapters, with tiny CPU save/reload coverage for all three architectures. Llama and Gemma need their
   publishers' Hugging Face access approvals. Full-size behavioral validation is a separate requirement.
@@ -126,7 +129,7 @@ before terminating the GPU. This new export workflow is separate from the histor
 ## Tests
 
 ```sh
-python -m unittest -v test_abliteration test_dense_abliteration test_research_checks test_interventions test_refusal
+python -m unittest -v test_abliteration test_dense_abliteration test_kimi_compat test_research_checks test_interventions test_refusal
 ```
 
 The new tests cover a real tiny Qwen bf16 save/reload, preservation of originals, corruption rejection,

@@ -17,7 +17,7 @@ from .storage import (destination, digest, file_manifest, identity, inventory, p
                       verify_files, write_json)
 
 ROOT = Path(__file__).resolve().parents[1]
-PATTERNS = ['*.safetensors', '*.json', '*.py', '*.txt', '*.jinja', '*.model', 'LICENSE*']
+PATTERNS = ['*.safetensors', '*.json', '*.py', '*.txt', '*.jinja', '*.model', 'LICENSE*','NOTICE*','USE_POLICY*']
 
 
 def resolve_config(model, revision=None, offline=False):
@@ -83,6 +83,9 @@ def code_state():
 def run_worker(job, stage):
     log = job.parent / f'{stage}.log'
     env = dict(os.environ, HF_HUB_OFFLINE='1', TRANSFORMERS_OFFLINE='1', PYTHONUNBUFFERED='1')
+    # Workers load local files only. Do not expose account credentials to model implementations.
+    for name in ('HF_TOKEN','HUGGING_FACE_HUB_TOKEN','RUNPOD_API_KEY'):
+        env.pop(name,None)
     cmd = [sys.executable, '-m', 'abliteration.worker', str(job), stage]
     with log.open('w') as f:
         proc = subprocess.Popen(cmd, cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)

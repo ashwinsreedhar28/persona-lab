@@ -30,6 +30,9 @@ class Engine:
         # Pinned Transformers 4.57.x needs a docstring-only compatibility fix for Kimi union annotations.
         import transformers.utils as tu
         tu.auto_docstring = lambda obj=None, **kw: obj if obj is not None else (lambda o: o)
+        from transformers.utils import generic
+        from .compat import model_input_decorator
+        generic.check_model_inputs=model_input_decorator(generic.check_model_inputs)
         from transformers import AutoModelForCausalLM, AutoTokenizer
         torch.manual_seed(0)
         torch.set_grad_enabled(False)
