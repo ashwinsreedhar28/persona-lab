@@ -37,13 +37,14 @@ the fixed values in the original experiment.
   checkpoint is Qwen3.5-4B. Another size still needs sufficient RAM and its own validation.
 - `moonshotai/Kimi-Linear-48B-A3B-Instruct`: PyTorch on one CUDA GPU large enough for roughly 98 GB of
   bf16 parameters plus working memory. Its explicit adapter covers all 6,711 writer matrices, including
-  all routed experts and shared experts. A 141 GB H200 is the intended target. `--trust-remote-code` is
-  required for its pinned implementation. Smaller GPUs are unsupported by this single-GPU adapter.
+  all routed experts and shared experts. The full export/reload passed on a 96 GB RTX PRO 6000
+  Blackwell at batch size one with `PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True`.
+  A 141 GB H200 provides additional working memory. `--trust-remote-code` is
+  required for its pinned implementation. Below 96 GB is unsupported by this single-GPU adapter; other 96 GB GPU types are untested.
   The adapter preserves Transformers input checking through a compatibility bridge for Kimi's direct
   decorator syntax versus Transformers 4.57.x's decorator factory. This is tested with both API forms
   and a tiny MLA-only CPU forward using the actual pinned model source. A tiny CUDA KDA+MLA
-  preflight also passed on sequence lengths 4 and 96 (recurrent and chunk kernels). Full 48B
-  checkpoint execution is a separate check.
+  preflight also passed on sequence lengths 4 and 96 (recurrent and chunk kernels). The full 48B checkpoint also passed extraction, selection, export and fresh reload on that 96 GB GPU.
 - Dense `Qwen/Qwen3-8B`, `meta-llama/Llama-3.1-8B-Instruct`, and `google/gemma-3-4b-it`: PyTorch/CUDA
   adapters, with tiny CPU save/reload coverage for all three architectures. Llama and Gemma need their
   publishers' Hugging Face access approvals. Full-size behavioral validation is a separate requirement.
@@ -142,10 +143,38 @@ terminate only that pod and preserve the attached network volume. Verify the sav
 before terminating the GPU. This new export workflow is separate from the historical measurement-only
 `kimi/` plan; those scripts and its published results are left intact.
 
+## Chat with a saved CUDA checkpoint
+
+Connect using the SSH command shown for your Runpod pod, then use the same CUDA Python environment
+as the export. Run only one full model process at a time. From the repository root on the pod:
+
+```sh
+PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True "$PY" chat_cuda.py \
+  --model /workspace/models/Kimi-Linear-48B-A3B-Instruct-abliterated \
+  --trust-remote-code --max-tokens 1024
+```
+
+This loads the saved edit and adds no steering. `/reset` clears the conversation; `/quit` exits.
+Use `/reset` between independent manual tests. The 96 GB configuration has limited cache headroom;
+1,024 answer tokens is a practical starting allowance, and long histories require more memory.
+`--max-tokens` controls the allowance and an explicit message reports when it is reached.
+The client otherwise defaults to 4,096 tokens for GPUs with sufficient memory.
+
+The client checks the completion seal, all file sizes and non-weight file hashes at startup.
+`--verify-files` additionally rehashes every weight file. The export has already done that full check.
+It uses cached decoding; `--check-cache` compares three cached/uncached greedy tokens on a harmless probe.
+That probe and a short READY response passed on the full saved Kimi checkpoint. `--no-cache` uses the
+slower uncached path from export verification. No claim of general cached/uncached bitwise equivalence is made.
+The upstream Triton `make_block_ptr` deprecation warning is diagnostic output, not a model response or
+proof of a failed generation. A long first kernel compilation can delay visible output.
+
+A saved edit may still refuse, and follow-up context may change its behavior. Neither mechanical projection,
+a clean reload nor one manual conversation establishes universal refusal removal or preserved capability.
+
 ## Tests
 
 ```sh
-python -m unittest -v test_abliteration test_dense_abliteration test_kimi_compat test_research_checks test_interventions test_refusal
+python -m unittest -v test_abliteration test_dense_abliteration test_kimi_compat test_research_checks test_interventions test_refusal test_cuda_chat
 ```
 
 The new tests cover a real tiny Qwen bf16 save/reload, preservation of originals, corruption rejection,

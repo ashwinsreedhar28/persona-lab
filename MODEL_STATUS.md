@@ -9,12 +9,25 @@ separate milestones. New weight files and raw evaluation outputs are excluded fr
 | Qwen3.5-4B, attempt 1 | Existing local bf16 edit; private HF release `ashwin-sreedhar/qwen3.5-4B-abliterated-bf16` | Legacy checkpoint, uploaded-file SHA-256 checks and terminal smoke test. Historical provenance is incomplete. Classifier refusals 18/100; original acceptance bar failed. |
 | Qwen3.5-4B, attempt 2 | Separate local bf16 checkpoint; no HF upload | New pipeline verified 738 tensor payloads, 67 edited tensors, unchanged originals and fresh-process probe reload. Imported historical direction. Classifier refusals 53/100 CUDA, 54/100 MLX; the 2/100 marker score is misleading. |
 | Gemma 3 4B IT | Separately saved bf16 edit; verified private release `ashwin-sreedhar/gemma-3-4b-it-abliterated-bf16` | All 883 tensor payloads checked, 70 edited tensors, original hashes unchanged. Fresh-process probe reload matched exactly. All 33 HF files verified. Also downloaded and manifest-verified on Apple silicon; terminal chat passed a short harmless READY smoke with steering off. Max projection ratio 0.358% (passes 1%); held-out harmless KL 0.2078 (above 0.1). Full behavioral/capability evaluation is pending. Publisher access required. |
-| Kimi Linear 48B A3B Instruct | CUDA adapter maps all 6,711 writers; original snapshot retained on persistent storage | Earlier in-memory study is separate. New saved-checkpoint export is not yet verified. Tiny pinned-source CUDA KDA+MLA passed in recurrent and chunk modes, plus the CPU MLA check. Full 48B forward, edit and saved reload remain to be checked. |
+| Kimi Linear 48B A3B Instruct | Separately saved bf16 edit and original on persistent Runpod storage; CUDA chat tested | All 20,493 tensors checked, 6,711 edited. Original hashes unchanged; fresh-process probe reload matched exactly. Held-out harmless KL 0.0756 and max projection ratio 0.636% pass the diagnostic references. Cached chat passed a harmless probe. Broad behavior/capability remains unverified. |
 | Qwen3-8B | Separately saved bf16 edit; verified private release `ashwin-sreedhar/qwen3-8b-abliterated-bf16` | All 399 tensor payloads checked, 73 edited tensors, fresh-process probe reload matched exactly; 33 HF files verified. Max projection ratio 1.075% (above 1%); held-out harmless KL 0.1152 (above 0.1). Full behavioral/capability evaluation is pending. |
-| Llama 3.1 8B Instruct | Dense CUDA adapter; gated run pending publisher access | Tiny CPU save/reload passed. No authorized full-size download/export claimed. |
+| Llama 3.1 8B Instruct | Dense CUDA adapter; publisher access now granted, full export queued | Tiny CPU save/reload passed. No completed full-size checkpoint claimed yet. |
 
 The generic `--model` argument dispatches only to explicit, checked architectures. It does not support
 arbitrary models automatically. Kimi K3/K3.1 need separate architecture, licensing, hardware and validation work.
+
+## Interpreting the Kimi edit
+
+The full Kimi export succeeded on a 96 GB RTX PRO 6000 Blackwell GPU with batch size one and
+expandable CUDA allocator segments. This narrowly tested configuration replaces the earlier assumption
+that a 141 GB GPU was required; larger GPUs still provide more room for context and batching.
+The saved directory is `models/Kimi-Linear-48B-A3B-Instruct-abliterated` on the persistent GPU volume.
+See [the CUDA chat instructions](ABLITERATION.md#chat-with-a-saved-cuda-checkpoint).
+
+A manual test showed an initial refusal followed by a different response after a follow-up. That is one
+uncontrolled observation, without a matched base-model conversation. It demonstrates inconsistent refusal
+behavior, not universal removal or the functional correctness of generated content. No test prompt,
+completion, or generated program from that conversation is included here.
 
 ## Testing the saved Gemma checkpoint on Apple silicon
 

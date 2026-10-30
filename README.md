@@ -162,6 +162,7 @@ It still loses, and `bench_forward.py` says why: on mlx-lm 0.32 / M1 Pro a 4-tok
 | `sweep.py` | dose sweep with hostility + degeneracy metrics → CSV + PNG |
 | `spec_decode.py`, `mtp.py`, `bench_forward.py` | the speculative-decoding experiment |
 | `torch/` | original transformers/PyTorch versions; CUDA, ~3 tok/s on MPS |
+| `chat_cuda.py` | plain cached CUDA chat with saved checkpoints, metadata checks and an optional uncached mode |
 | `abliterate.py`, `abliteration/` | model-specific bf16 export, original hashes, tensor readback and fresh-process reload checks |
 | `ABLITERATION.md`, `MODEL_STATUS.md` | reproduction instructions, supported architectures and checkpoint evidence |
 | `kimi/` | Kimi Linear 48B refusal-direction measurements: pod scripts, aggregate results in `kimi/out/`, write-up in `kimi/RESULTS.md` |
