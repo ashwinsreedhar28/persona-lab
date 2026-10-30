@@ -52,7 +52,7 @@ class Engine:
 
     def encode(self, text):
         return list(self.tok.apply_chat_template([dict(role='user', content=text)],
-                                                add_generation_prompt=True, tokenize=True))
+                                                add_generation_prompt=True, tokenize=True, return_dict=False))
 
     def suffix(self):
         marker = '\x00INSTR\x00'

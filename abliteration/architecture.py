@@ -8,6 +8,10 @@ def adapter_for(config):
     kind = config.get('model_type')
     if kind == 'qwen3_5' and config.get('text_config', {}).get('model_type') == 'qwen3_5_text':
         return 'qwen-mlx'
+    if kind in ('qwen3', 'llama'):
+        return 'dense-torch'
+    if kind == 'gemma3' and config.get('text_config', {}).get('model_type') == 'gemma3_text':
+        return 'dense-torch'
     if kind == 'kimi_linear':
         # This model_type is also used for other architectures. Require the audited structure.
         required = dict(hidden_size=2304, num_hidden_layers=27, num_experts=256,
@@ -48,7 +52,7 @@ def writers(config, tensors):
             linear(prefix + '.mlp.down_proj')
         if config.get('vision_config'):
             linear('model.visual.merger.linear_fc2')
-    else:
+    elif adapter == 'kimi-torch':
         add('model.embed_tokens.weight', 'embedding')
         for i in range(n):
             prefix = f'model.layers.{i}'
@@ -59,10 +63,54 @@ def writers(config, tensors):
                 for j in range(c['num_experts']):
                     linear(prefix + f'.block_sparse_moe.experts.{j}.w2')
                 linear(prefix + '.block_sparse_moe.shared_experts.down_proj')
+    else:
+        if config['model_type'] == 'gemma3':
+            prefix = next((p for p in ('language_model.model', 'model.language_model')
+                           if p + '.embed_tokens.weight' in tensors), None)
+            if prefix is None:
+                raise ValueError('Unrecognized Gemma text tensor layout')
+        else:
+            prefix = 'model'
+        add(prefix + '.embed_tokens.weight', 'embedding')
+        for i in range(n):
+            linear(prefix + f'.layers.{i}.self_attn.o_proj')
+            linear(prefix + f'.layers.{i}.mlp.down_proj')
+        if config['model_type'] == 'gemma3':
+            projector = next((p for p in ('multi_modal_projector.mm_input_projection_weight',
+                                         'model.multi_modal_projector.mm_input_projection_weight') if p in tensors), None)
+            if config.get('vision_config') and projector is None:
+                raise ValueError('Gemma multimodal projector is missing')
+            if projector:
+                add(projector, 'embedding')  # Stored as (vision_hidden, text_hidden), right-multiplied.
+            normalization_scales(config, tensors)  # Validate the post-writer normalization dependencies.
     # Refuse unaccounted writer-like keys, including a new expert/layout variant.
     writer_like = re.compile(r'(?:\.down_proj|\.out_proj|\.o_proj|\.w2|\.merger\.linear_fc2)\.(?:weight|bias)$')
     extras = [k for k in tensors if writer_like.search(k) and k not in modes and
-              not k.startswith('mtp.') and not k.startswith('model.visual.blocks.')]
+              not k.startswith('mtp.') and not k.startswith('model.visual.blocks.') and
+              not k.startswith('vision_tower.') and not k.startswith('model.vision_tower.')]
     if extras:
         raise ValueError(f'Unmapped output projections: {extras[:5]}')
     return modes
+
+
+def normalization_scales(config, tensors):
+    """Gemma normalizes/scales writer outputs before residual addition; raw W <- P W is insufficient."""
+    if config.get('model_type') != 'gemma3':
+        return {}
+    prefix = next((p for p in ('language_model.model', 'model.language_model')
+                   if p + '.embed_tokens.weight' in tensors), None)
+    if prefix is None:
+        raise ValueError('Unrecognized Gemma text tensor layout')
+    c = config['text_config']
+    result = {}
+    for i in range(c['num_hidden_layers']):
+        for writer, norm in (('self_attn.o_proj', 'post_attention_layernorm'),
+                             ('mlp.down_proj', 'post_feedforward_layernorm')):
+            key = prefix + f'.layers.{i}.{norm}.weight'
+            if key not in tensors or tensors[key]['shape'] != [c['hidden_size']]:
+                raise ValueError(f'Missing or invalid Gemma post-writer scale: {key}')
+            result[prefix + f'.layers.{i}.{writer}.weight'] = key
+            bias = prefix + f'.layers.{i}.{writer}.bias'
+            if bias in tensors:
+                result[bias] = key
+    return result

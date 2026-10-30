@@ -12,7 +12,7 @@ import numpy as np
 
 from abliteration.architecture import adapter_for, writers
 from abliteration.cli import ROOT, source_files, verify
-from abliteration.storage import destination, digest, header, inventory, publish, write_json
+from abliteration.storage import destination, digest, file_manifest, file_manifest_names, header, inventory, publish, write_json
 from abliteration.worker import auroc, kl
 
 
@@ -30,8 +30,20 @@ def qconfig():
 
 
 class IntegrityTests(unittest.TestCase):
+    def test_source_under_huggingface_cache_keeps_model_files(self):
+        with tempfile.TemporaryDirectory() as d:
+            root = Path(d) / '.cache/huggingface/hub/snapshots/abcdef'
+            root.mkdir(parents=True)
+            (root / 'config.json').write_text('{}')
+            (root / 'model.safetensors').write_bytes(b'fixture')
+            (root / '.cache').mkdir()
+            (root / '.cache/ignored.json').write_text('{}')
+            self.assertEqual(source_files(root), ['config.json', 'model.safetensors'])
+            self.assertEqual(set(file_manifest(root)), {'config.json','model.safetensors'})
+            self.assertEqual(set(file_manifest_names(root)), {'config.json','model.safetensors'})
+
     def test_unknown_and_quantized_architectures_rejected(self):
-        for c in (dict(model_type='llama'), dict(qconfig(), quantization=dict(bits=4)),
+        for c in (dict(model_type='unsupported'), dict(qconfig(), quantization=dict(bits=4)),
                   dict(model_type='kimi_linear', hidden_size=8192)):
             with self.assertRaises(ValueError):
                 adapter_for(c)

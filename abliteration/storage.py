@@ -105,7 +105,8 @@ def file_manifest(root, *, exclude=()):
     root = Path(root)
     return {str(p.relative_to(root)): dict(bytes=p.stat().st_size, sha256=digest(p))
             for p in sorted(root.rglob('*')) if p.is_file() and
-            str(p.relative_to(root)) not in exclude and '__pycache__' not in p.parts and '.cache' not in p.parts}
+            str(p.relative_to(root)) not in exclude and '__pycache__' not in p.relative_to(root).parts and
+            '.cache' not in p.relative_to(root).parts}
 
 
 def verify_files(root, expected):
@@ -121,7 +122,7 @@ def verify_files(root, expected):
 
 def file_manifest_names(root):
     return [str(p.relative_to(root)) for p in Path(root).rglob('*') if p.is_file() and
-            '__pycache__' not in p.parts and '.cache' not in p.parts]
+            '__pycache__' not in p.relative_to(root).parts and '.cache' not in p.relative_to(root).parts]
 
 
 def destination(source, output):

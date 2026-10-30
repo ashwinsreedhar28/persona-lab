@@ -47,7 +47,7 @@ def resolve_source(model, revision=None, offline=False):
 def source_files(root):
     import fnmatch
     return sorted(str(p.relative_to(root)) for p in Path(root).rglob('*') if p.is_file() and
-        '.cache' not in p.parts and '__pycache__' not in p.parts and
+        '.cache' not in p.relative_to(root).parts and '__pycache__' not in p.relative_to(root).parts and
         any(fnmatch.fnmatch(str(p.relative_to(root)), pattern) for pattern in PATTERNS))
 
 
@@ -157,7 +157,10 @@ def run(args):
     meta.mkdir()
     job = dict(schema_version=1, model=args.model, source=str(source), config=cfg, adapter=adapter,
         source_files=files, data=str(data), direction=direction, batch_size=args.batch_size,
+        device=args.device,
         trust_remote_code=args.trust_remote_code,
+        intervention_policy='Gemma: project each normalized writer along unit((1+norm_weight)*r); other writers along r'
+            if cfg['model_type']=='gemma3' else 'Project residual writers along r',
         reload_atol=args.reload_atol if args.reload_atol is not None else (1e-5 if adapter == 'qwen-mlx' else .02))
     write_json(meta / 'job.json', job)
     start = time.monotonic()
@@ -182,11 +185,12 @@ def run(args):
             raise ValueError('Imported direction changed during the run; refusing publication')
         write_json(meta / 'status.json', dict(state='verified', source_unchanged=True,
             duration_seconds=round(time.monotonic() - start, 2),
-            scope='All mapped main-decoder writers; Qwen vision merger also edited. MTP tensors preserved, not edited. Text-only reload verification.'))
+            scope='All architecture-mapped decoder writers and supported vision projector. MTP tensors, if present, preserved unedited. Text-only reload verification.'))
         manifest = dict(schema_version=1, adapter=adapter, model=args.model, source=provenance,
             source_manifest_sha256=digest(meta / 'source.json'),
             direction_file_sha256=digest(meta / 'direction.npy'),
             precision='bf16 inputs/outputs, fp32 projection',
+            intervention_policy=job['intervention_policy'],
             tied_embedding_policy='edit input embedding; tied read head changes with it; untied read head untouched',
             original_weights_unchanged=True, output_files=file_manifest(staging))
         manifest['manifest_sha256'] = identity(manifest)
@@ -219,6 +223,8 @@ def parser():
     r.add_argument('--data', type=Path, default=ROOT / 'abl/data', help='Existing fixed train/validation/KL splits')
     r.add_argument('--direction', type=Path, help='Explicitly import an existing unit .npy direction instead of extracting/selecting')
     r.add_argument('--batch-size', type=int, default=2)
+    r.add_argument('--device',choices=['cuda:0','cpu'],default='cuda:0',
+                   help='Dense PyTorch adapter device; CPU is for small fixtures, CUDA for full models')
     r.add_argument('--reload-atol', type=float, help='Absolute logprob tolerance; default 1e-5 MLX / .02 CUDA; greedy IDs must match')
     r.add_argument('--offline', action='store_true')
     r.add_argument('--trust-remote-code', action='store_true', help='Opt into code from the pinned Kimi snapshot')

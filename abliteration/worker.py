@@ -21,10 +21,13 @@ SPLITS = ('harmful_train', 'harmless_train', 'harmful_val', 'harmless_val', 'har
 
 
 def backend(job):
-    return importlib.import_module('.qwen' if job['adapter'] == 'qwen-mlx' else '.kimi', __package__)
+    return importlib.import_module({'qwen-mlx':'.qwen','kimi-torch':'.kimi','dense-torch':'.dense'}[job['adapter']], __package__)
 
 
 def make_engine(job, source=None):
+    if job['adapter']=='dense-torch':
+        return backend(job).Engine(source or job['source'],job['config'],job['batch_size'],
+                                   job['trust_remote_code'],device=job.get('device','cuda:0'))
     return backend(job).Engine(source or job['source'], job['config'], job['batch_size'], job['trust_remote_code'])
 
 
@@ -143,7 +146,7 @@ def reference(job, root):
         per_layer_ratio=[float(v) if np.isfinite(v) else None for v in ratios],
         mechanical_threshold=.01, mechanical_pass=bool(np.isfinite(ratios).all() and (ratios <= .01).all()),
         harmless_kl_mean=float(kl(base_lp, edited_lp).mean()),
-        hook_vs_weight_edit_kl_mean=float(kl(hook_lp, probe[0]).mean()),
+        selection_ablation_vs_weight_edit_kl_mean=float(kl(hook_lp, probe[0]).mean()),
         behavioral_acceptance='Not evaluated by this export command; no universal-refusal or capability-preservation claim.'))
     print('In-memory edited reference saved; exiting before shard export.', flush=True)
 
@@ -172,7 +175,11 @@ def export(job, root):
     checks = {}
     for number, shard in enumerate(sorted({v['shard'] for v in inv.values()})):
         print(f'Exporting shard {number+1}: {shard}', flush=True)
-        expected = lib.export_shard(source / shard, root / shard, modes, rh)
+        if job['adapter']=='dense-torch':
+            expected=lib.export_shard(source/shard,root/shard,modes,rh,config=job['config'],
+                                     source_root=source,inv=inv,device=job.get('device','cuda:0'))
+        else:
+            expected = lib.export_shard(source / shard, root / shard, modes, rh)
         with (root / shard).open('rb') as f:
             os.fsync(f.fileno())
         saved = header(root / shard)

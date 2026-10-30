@@ -32,6 +32,9 @@ the fixed values in the original experiment.
   bf16 parameters plus working memory. Its explicit adapter covers all 6,711 writer matrices, including
   all routed experts and shared experts. A 141 GB H200 is the intended target. `--trust-remote-code` is
   required for its pinned implementation. Smaller GPUs are unsupported by this single-GPU adapter.
+- Dense `Qwen/Qwen3-8B`, `meta-llama/Llama-3.1-8B-Instruct`, and `google/gemma-3-4b-it`: PyTorch/CUDA
+  adapters, with tiny CPU save/reload coverage for all three architectures. Llama and Gemma need their
+  publishers' Hugging Face access approvals. Full-size behavioral validation is a separate requirement.
 - Unknown architectures, quantized input weights, missing writers and unexpected writer shapes fail
   explicitly. Passing another model name is not a promise of support. K3/K3.1 require separate adapters
   and substantially different hardware; their shared `model_type` must not silently select the 48B adapter.
@@ -39,6 +42,13 @@ the fixed values in the original experiment.
 This command supports text forwards. Qwen's vision merger is also edited and other vision tensors are
 preserved, but image behavior is untested. MTP tensors and config are preserved unmodified; the current
 MLX text loader ignores MTP. No claim is made about MTP-assisted generation after the edit.
+
+Gemma has learned RMS normalization after its attention/MLP output projections. Its adapter accounts for
+these scales: if the effective scale is `gamma = 1 + norm_weight`, the linear writer is projected along
+`unit(gamma * r)`. This enforces `r^T diag(gamma) W' = 0` before the scalar RMS denominator. It is not
+identical to projecting the final normalized activation. Selection uses temporary **actual weight edits**
+for the dense adapters, so it measures the saved intervention, including tied readers and normalization.
+The Gemma image projector is edited on its output axis, but image behavior is not evaluated.
 
 ## What the command does
 
@@ -98,11 +108,13 @@ In a CUDA PyTorch image, with this repo and the fixed data files in `/workspace/
 ```sh
 cd /workspace/evil-qwen
 export HF_HOME=/workspace/hf
-python -m pip install -r requirements-abliteration-cuda.txt
-python abliterate.py run --model moonshotai/Kimi-Linear-48B-A3B-Instruct \
+python3 -m venv --without-pip --system-site-packages /workspace/venvs/abliteration
+PY=/workspace/venvs/abliteration/bin/python
+"$PY" -m pip install -r requirements-abliteration-cuda.txt
+"$PY" abliterate.py run --model moonshotai/Kimi-Linear-48B-A3B-Instruct \
   --trust-remote-code --data /workspace/evil-qwen/abl/data \
   --output /workspace/models/Kimi-Linear-48B-A3B-Instruct-abliterated
-python abliterate.py verify /workspace/models/Kimi-Linear-48B-A3B-Instruct-abliterated
+"$PY" abliterate.py verify /workspace/models/Kimi-Linear-48B-A3B-Instruct-abliterated
 ```
 
 Provisioning is a separate paid action, never a side effect of `abliterate.py`. Use one pod, record its
@@ -114,7 +126,7 @@ before terminating the GPU. This new export workflow is separate from the histor
 ## Tests
 
 ```sh
-python -m unittest -v test_abliteration test_research_checks test_interventions test_refusal
+python -m unittest -v test_abliteration test_dense_abliteration test_research_checks test_interventions test_refusal
 ```
 
 The new tests cover a real tiny Qwen bf16 save/reload, preservation of originals, corruption rejection,
