@@ -78,14 +78,15 @@ The equations below also state this repository's weight orientation and Gemma-sp
 At a candidate layer $\ell$ and aligned template position $p$, take the difference of mean residual
 activations on harmful and harmless training prompts:
 
-$$
+```math
+\begin{aligned}
 \mathbf d_{\ell,p}
-= \mathbb E_{x\sim\mathcal H_{\mathrm{train}}}[\mathbf h_{\ell,p}(x)]
-- \mathbb E_{x\sim\mathcal B_{\mathrm{train}}}[\mathbf h_{\ell,p}(x)],
-\qquad
+&= \mathbb E_{x\sim\mathcal H_{\mathrm{train}}}[\mathbf h_{\ell,p}(x)] \\
+&\quad-\mathbb E_{x\sim\mathcal B_{\mathrm{train}}}[\mathbf h_{\ell,p}(x)], \\
 \hat{\mathbf r}_{\ell,p}
-= \frac{\mathbf d_{\ell,p}}{\lVert\mathbf d_{\ell,p}\rVert_2}.
-$$
+&= \frac{\mathbf d_{\ell,p}}{\lVert\mathbf d_{\ell,p}\rVert_2}.
+\end{aligned}
+```
 
 The new pipeline selects a candidate using validation separation, positive refusal induction and a
 harmless first-token KL bound. Its fixed rule differs from the historical Qwen attempt-1 bypass ranking;
@@ -96,12 +97,13 @@ $\hat{\mathbf r}$ is a candidate refusal-related direction, not proof of a uniqu
 
 For a residual column vector $\mathbf h\in\mathbb R^d$, define the orthogonal projection:
 
-$$
-\mathbf P = \mathbf I-\hat{\mathbf r}\hat{\mathbf r}^{\mathsf T},
-\qquad
-\mathbf h' = \mathbf P\mathbf h
+```math
+\begin{aligned}
+\mathbf P &= \mathbf I-\hat{\mathbf r}\hat{\mathbf r}^{\mathsf T}, \\
+\mathbf h' &= \mathbf P\mathbf h
 = \mathbf h-\hat{\mathbf r}(\hat{\mathbf r}^{\mathsf T}\mathbf h).
-$$
+\end{aligned}
+```
 
 This removes the coordinate along $\hat{\mathbf r}$ at that site: $\hat{\mathbf r}^{\mathsf T}\mathbf h'=0$
 in exact arithmetic. Reversing the direction's sign gives the same projection.
@@ -111,21 +113,22 @@ in exact arithmetic. Reversing the direction's sign gives the same projection.
 For a residual writer $\mathbf z=\mathbf W\mathbf x+\mathbf b$, with weights stored as
 $\mathbf W\in\mathbb R^{d\times d_{\mathrm{in}}}$, left-multiply its output dimension:
 
-$$
-\mathbf W' = \mathbf P\mathbf W
-= \mathbf W-\hat{\mathbf r}(\hat{\mathbf r}^{\mathsf T}\mathbf W),
-\qquad
-\mathbf b' = \mathbf P\mathbf b
+```math
+\begin{aligned}
+\mathbf W' &= \mathbf P\mathbf W
+= \mathbf W-\hat{\mathbf r}(\hat{\mathbf r}^{\mathsf T}\mathbf W), \\
+\mathbf b' &= \mathbf P\mathbf b
 = \mathbf b-\hat{\mathbf r}(\hat{\mathbf r}^{\mathsf T}\mathbf b).
-$$
+\end{aligned}
+```
 
 An embedding table is stored with hidden coordinates in its **columns**,
 $\mathbf E\in\mathbb R^{V\times d}$, so it is projected on the right:
 
-$$
+```math
 \mathbf E' = \mathbf E\mathbf P
 = \mathbf E-(\mathbf E\hat{\mathbf r})\hat{\mathbf r}^{\mathsf T}.
-$$
+```
 
 The adapters map embeddings, attention output projections, MLP down-projections, Kimi's routed/shared
 expert outputs, applicable biases and supported multimodal projectors. They do not project every model
@@ -135,19 +138,19 @@ head is preserved. Projection arithmetic uses fp32, then saves bf16 weights in a
 ### 4. Account for Gemma's post-writer normalization
 
 Gemma 3 applies a learned scale after certain writers. For those paths, write
-$\mathbf D=\operatorname{diag}(\mathbf 1+\mathbf g)$ and
-$\mathbf y=\mathbf D\mathbf z/\operatorname{RMS}(\mathbf z)$.
+$\mathbf D=\mathrm{diag}(\mathbf 1+\mathbf g)$ and
+$\mathbf y=\mathbf D\mathbf z/\mathrm{RMS}(\mathbf z)$.
 The adapter projects along the scaled direction:
 
-$$
+```math
+\begin{aligned}
 \hat{\mathbf v}
-= \frac{\mathbf D^{\mathsf T}\hat{\mathbf r}}
-       {\lVert\mathbf D^{\mathsf T}\hat{\mathbf r}\rVert_2},
-\qquad
-\mathbf W'=(\mathbf I-\hat{\mathbf v}\hat{\mathbf v}^{\mathsf T})\mathbf W,
-\qquad
-\mathbf b'=(\mathbf I-\hat{\mathbf v}\hat{\mathbf v}^{\mathsf T})\mathbf b.
-$$
+&= \frac{\mathbf D^{\mathsf T}\hat{\mathbf r}}
+       {\lVert\mathbf D^{\mathsf T}\hat{\mathbf r}\rVert_2}, \\
+\mathbf W' &= (\mathbf I-\hat{\mathbf v}\hat{\mathbf v}^{\mathsf T})\mathbf W, \\
+\mathbf b' &= (\mathbf I-\hat{\mathbf v}\hat{\mathbf v}^{\mathsf T})\mathbf b.
+\end{aligned}
+```
 
 This enforces $\hat{\mathbf r}^{\mathsf T}\mathbf D\mathbf W'=0$ for those writers in exact arithmetic.
 If the scaled direction is zero, that path already contributes no coordinate along the selected direction.
