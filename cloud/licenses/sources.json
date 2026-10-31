@@ -20,6 +20,16 @@
     "DeepSeek-MIT.txt": {
       "url": "https://huggingface.co/deepseek-ai/DeepSeek-R1-0528-Qwen3-8B/resolve/6e8885a6ff5c1dc5201574c8fd700323f23c25fa/LICENSE",
       "sha256": "f2c6c602815669d292889e5be8c802f2ed950653b77999b1584e8e6aed25d040"
+    },
+    "GLM-4.7-Flash-MIT.txt": {
+      "url": "https://huggingface.co/zai-org/GLM-4.7-Flash/blob/7dd20894a642a0aa287e9827cb1a1f7f91386b67/README.md",
+      "sha256": "5570c8e36983910e3829b00278d6251ff62384381f25e943282e57493fa0b49c",
+      "kind": "release packaging from pinned publisher MIT model-card declaration"
+    },
+    "GLM-4.7-Flash-license-evidence.json": {
+      "url": "https://huggingface.co/zai-org/GLM-4.7-Flash/blob/7dd20894a642a0aa287e9827cb1a1f7f91386b67/README.md",
+      "sha256": "d1f44f72a80ec80d923ed792cff51653f53778f3fc7532c5299609d71e287c5a",
+      "kind": "release packaging from pinned publisher MIT model-card declaration"
     }
   },
   "kimi_license_scope": "The model card declares MIT; the full MIT text is supplied from the publisher's companion Kimi-Linear repository. Original third-party code notices are retained."

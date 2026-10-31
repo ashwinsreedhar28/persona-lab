@@ -23,6 +23,7 @@ SUPPORTED_RELEASE_LICENSES={
     'moonshotai/Kimi-Linear-48B-A3B-Instruct':'mit',
     'deepseek-ai/DeepSeek-R1-0528-Qwen3-8B':'mit',
     'openai/gpt-oss-20b':'apache-2.0',
+    'zai-org/GLM-4.7-Flash':'mit',
 }
 
 
@@ -73,10 +74,13 @@ def license_assets(license_id, base_model=None):
     elif license_id=='mit':
         names={None:'Kimi-Linear-MIT.txt',
                'moonshotai/Kimi-Linear-48B-A3B-Instruct':'Kimi-Linear-MIT.txt',
-               'deepseek-ai/DeepSeek-R1-0528-Qwen3-8B':'DeepSeek-MIT.txt'}
+               'deepseek-ai/DeepSeek-R1-0528-Qwen3-8B':'DeepSeek-MIT.txt',
+               'zai-org/GLM-4.7-Flash':'GLM-4.7-Flash-MIT.txt'}
         if base_model not in names:
             raise ValueError('No source-specific MIT license bundle for this model')
         mapping['LICENSE']=assets/names[base_model]
+        if base_model=='zai-org/GLM-4.7-Flash':
+            mapping['UPSTREAM_LICENSE_EVIDENCE.json']=assets/'GLM-4.7-Flash-license-evidence.json'
         mapping['THIRD_PARTY_LICENSES/Apache-2.0.txt']=assets/'Apache-2.0.txt'
     elif license_id!='apache-2.0':raise ValueError('Unsupported license asset bundle')
     for file in mapping.values():
@@ -139,6 +143,8 @@ notice and policy files. No benchmark prompts, raw harmful completions or manual
         body+='\n## Architecture and loading\n\nThis is a DeepSeek reasoning release using the Qwen3 dense backbone; it does not establish native DeepSeek MoE architecture coverage. Use a separate environment with `requirements/native-cuda.txt`. The upstream DeepSeek chat template is preserved; it does not expose a switch to disable reasoning. Selection uses the recorded fixed first-token proxy and is not a comprehensive test of reasoning or refusal behavior.\n'
     if base_model=='openai/gpt-oss-20b':
         body+='\n## Precision provenance and chat\n\nThe publisher released the expert weights in MXFP4. This checkpoint was edited from a separately saved, verified bf16 dequantization of that release. Dequantization does not recover precision lost during quantization; this is not an original full-precision OpenAI release. The unedited comparison baseline is that same dequantized representation. Conversion provenance is retained in `.conversion/` and the source manifest. Use the separate `requirements/native-cuda.txt` environment and `chat_cuda.py`, which uses eager attention with sinks, native eager experts, and the Harmony template at low reasoning effort with an explicitly opened ordinary analysis channel. This same prompt policy is used for extraction, original/edited checks and chat, so the first-token proxy scores content instead of a fixed protocol header. The terminal displays only the final assistant channel. No tools are executed.\n'
+    if base_model=='zai-org/GLM-4.7-Flash':
+        body+='\n## Source license and loading\n\nThe pinned upstream model card declares MIT through its standard Hub metadata. No standalone copyright notice or license file was supplied at that revision. LICENSE retains publisher attribution and supplies the standard MIT terms for that declaration; UPSTREAM_LICENSE_EVIDENCE.json records the source revision and card hash. No copyright year or publisher notice has been invented, and the separate code repository’s Apache license is not substituted for the model license. Use `requirements/native-cuda.txt` and `chat_cuda.py`. Decoder expert layouts are preserved during export; unused next-token-prediction tensors remain unchanged and untested.\n'
     return body
 
 

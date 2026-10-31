@@ -44,8 +44,10 @@ retains Apache notices, and does not substitute Kimi's MIT copyright notice.
 
 GLM's pinned [model card](https://huggingface.co/zai-org/GLM-4.7-Flash/blob/7dd20894a642a0aa287e9827cb1a1f7f91386b67/README.md)
 declares MIT, but that revision has no standalone license file. The related code repository's Apache
-license must not be substituted for the model's declaration. Preserve the card and pinned metadata;
-keep a verified research checkpoint on the approved volume while public release packaging is unresolved.
+license must not be substituted for the model's declaration. [Hub license guidance](https://huggingface.co/docs/hub/repositories-licenses)
+explicitly supports declaring a standard license in model-card metadata. Release packaging therefore
+retains Z.ai attribution, the pinned declaration/card hash, and standard MIT terms, without inventing
+a missing publisher copyright notice. This source-specific bundle is separate from Kimi and DeepSeek.
 
 ## Local software tests
 

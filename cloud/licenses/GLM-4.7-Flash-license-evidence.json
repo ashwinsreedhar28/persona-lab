@@ -1,0 +1,12 @@
+{
+  "declared_license": "mit",
+  "hub_license_metadata_reference": "https://huggingface.co/docs/hub/repositories-licenses",
+  "model": "zai-org/GLM-4.7-Flash",
+  "packaging": "Standard MIT terms plus publisher attribution; no invented copyright year or substituted code license.",
+  "publisher": "Z.ai (zai-org)",
+  "revision": "7dd20894a642a0aa287e9827cb1a1f7f91386b67",
+  "source_card_sha256": "7bfcbced42741ceb3fff8809f8d6c84ada9696850e257c4e53e6c2fe9ef4f9bf",
+  "source_card_url": "https://huggingface.co/zai-org/GLM-4.7-Flash/blob/7dd20894a642a0aa287e9827cb1a1f7f91386b67/README.md",
+  "standalone_copyright_notice_supplied": false,
+  "standalone_license_file_supplied": false
+}
