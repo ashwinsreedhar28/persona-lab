@@ -139,6 +139,12 @@ class ReleaseTests(unittest.TestCase):
                 self.assertEqual(archive.extractfile('project/cloud/remote_job.py').read(),b'committed source')
 
     def test_license_assets_match_provenance(self):
+        validate_release_license('deepseek-ai/DeepSeek-R1-0528-Qwen3-8B','mit')
+        deepseek=license_assets('mit','deepseek-ai/DeepSeek-R1-0528-Qwen3-8B')
+        self.assertIn('Copyright (c) 2023 DeepSeek',deepseek['LICENSE'].read_text())
+        self.assertNotEqual(deepseek['LICENSE'],license_assets('mit')['LICENSE'])
+        with self.assertRaisesRegex(ValueError,'source-specific'):
+            license_assets('mit','zai-org/GLM-4.7-Flash')
         validate_release_license('google/gemma-3-4b-it','gemma')
         with self.assertRaises(ValueError):validate_release_license('google/gemma-3-4b-it','mit')
         with self.assertRaises(ValueError):validate_release_license('unknown/model','mit')

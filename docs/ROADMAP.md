@@ -1,8 +1,12 @@
 # Proposed next work and cloud budget — 2026-10-31
 
-These are proposed priorities, not completed model support or authorization for paid runs. The
+The user approved an initial $35 Runpod cap and a 300 GB temporary volume after this plan was written.
+That authorization does not mean the model runs are completed. The
 [Qwen expanded-calibration dataset and diagnostic](CALIBRATION_V2.md) are complete locally at $0
 cloud cost. No new-family GPU, network volume, subscription or HF repository was created.
+GLM/DeepSeek [small CPU adapter fixtures](GLM_DEEPSEEK_RESEARCH.md) now pass; full-size work is pending.
+The original 128-row calibration remains the default until the controlled comparison establishes a
+qualifying benefit for the expanded split. The expanded split has not been promoted.
 
 ## Priority by expected impact
 
@@ -57,7 +61,7 @@ for the new adapters. Stock and the actual deployment quote must be rechecked be
 An **estimated planning allowance of 6–12 GPU hours across the three targets** is $10.74–21.48 on
 A100 or $14.94–29.88 on the 96 GB card. These runtimes are estimates, not measured runs or a guarantee;
 adapter debugging, extended benchmarks and failed jobs can require more. Approve a cap and start one
-family before committing the rest. A **$35 initial Runpod cap** is a proposal, not authorization. An optional HF subscription is separate.
+family before committing the rest. The **$35 initial Runpod cap is now approved**. An optional HF subscription is separate and has not been purchased.
 
 A **300 GB standard temporary network volume** is **$21/month**, approximately **$0.70/day** or
 **$0.35 for 12 hours**, using a 30-day-month estimate. A 40 GB container disk adds about $0.07 over

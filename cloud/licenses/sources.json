@@ -16,6 +16,10 @@
     "Apache-2.0.txt": {
       "url": "https://www.apache.org/licenses/LICENSE-2.0.txt",
       "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+    },
+    "DeepSeek-MIT.txt": {
+      "url": "https://huggingface.co/deepseek-ai/DeepSeek-R1-0528-Qwen3-8B/resolve/6e8885a6ff5c1dc5201574c8fd700323f23c25fa/LICENSE",
+      "sha256": "f2c6c602815669d292889e5be8c802f2ed950653b77999b1584e8e6aed25d040"
     }
   },
   "kimi_license_scope": "The model card declares MIT; the full MIT text is supplied from the publisher's companion Kimi-Linear repository. Original third-party code notices are retained."

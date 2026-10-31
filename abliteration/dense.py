@@ -1,4 +1,4 @@
-"""PyTorch adapters for dense Qwen3, Llama and normalization-aware Gemma3."""
+"""PyTorch adapters for Qwen3, Llama, normalization-aware Gemma3 and GLM MoE."""
 from contextlib import contextmanager
 import hashlib
 from types import SimpleNamespace
@@ -18,6 +18,10 @@ def project(w, mode, r, norm_weight=None):
     Selection therefore uses actual temporary weight edits, including the changed denominator.
     """
     import torch
+    if mode == 'expert_linear':
+        if w.ndim != 3 or norm_weight is not None:
+            raise ValueError('Expert projections require unnormalized [expert, out, in] tensors')
+        return torch.stack([transform(expert, 'linear', r) for expert in w])
     if norm_weight is not None:
         v = r * (1 + norm_weight.float())
         norm = torch.linalg.vector_norm(v)
@@ -43,6 +47,10 @@ class Engine(KimiEngine):
         self.loaded = loader.from_pretrained(source, torch_dtype=torch.bfloat16, device_map=device,
             local_files_only=True, attn_implementation='sdpa')
         self.loaded.eval()
+        if config['model_type'] == 'glm4_moe_lite':
+            if not hasattr(self.loaded, 'set_experts_implementation'):
+                raise RuntimeError('GLM requires the checked Transformers 5.21 native expert implementation')
+            self.loaded.set_experts_implementation('eager')
         self.source, self.config, self.device = source, config, device
         self.torch, self.bs = torch, batch_size
         if config['model_type'] == 'gemma3':
@@ -70,6 +78,27 @@ class Engine(KimiEngine):
         self.params = dict(self.loaded.named_parameters(remove_duplicate=False))
         self.paths = {}
         for key in set(self.modes) | set(self.scales.values()):
+            if config['model_type'] == 'glm4_moe_lite':
+                import re
+                match = re.fullmatch(r'(model\.layers\.\d+\.mlp\.experts)\.(\d+)\.down_proj\.weight', key)
+                if match:
+                    packed = self.params.get(match[1] + '.down_proj')
+                    if packed is None or packed.ndim != 3 or int(match[2]) >= packed.shape[0]:
+                        raise ValueError(f'Missing native GLM expert slice: {key}')
+                    view = packed[int(match[2])]
+                    if list(view.shape) != self.inv[key]['shape']:
+                        raise ValueError(f'Source/runtime GLM expert shape differs: {key}')
+                    from safetensors import safe_open
+                    from pathlib import Path
+                    with safe_open(str(Path(source) / self.inv[key]['shard']), framework='pt', device='cpu') as f:
+                        original = f.get_tensor(key)
+                    if not torch.equal(view.detach().cpu(), original):
+                        raise ValueError(f'Native GLM expert conversion changed tensor values: {key}')
+                    # A view edits the live packed parameter. Export retains the
+                    # upstream independent-expert layout and all unedited MTP tensors.
+                    if key in self.params:
+                        raise ValueError(f'Ambiguous native GLM parameter: {key}')
+                    self.params[key] = view
             candidates = [key]
             if key.startswith('language_model.model.'):
                 candidates.append(key.replace('language_model.model.', 'model.language_model.', 1))
@@ -80,14 +109,16 @@ class Engine(KimiEngine):
                 raise ValueError(f'Source/runtime tensor mapping is ambiguous or absent: {key}')
             self.paths[key] = matches[0]
 
+    def format_messages(self, messages, *, tokenize=True):
+        return self.tok.apply_chat_template(messages,
+            add_generation_prompt=True, tokenize=tokenize, return_dict=False, enable_thinking=False)
+
     def encode(self, text):
-        return list(self.tok.apply_chat_template([dict(role='user',content=text)],
-            add_generation_prompt=True, tokenize=True, return_dict=False, enable_thinking=False))
+        return list(self.format_messages([dict(role='user',content=text)]))
 
     def suffix(self):
         marker='\x00INSTR\x00'
-        s=self.tok.apply_chat_template([dict(role='user',content=marker)],
-            add_generation_prompt=True,tokenize=False,enable_thinking=False)
+        s=self.format_messages([dict(role='user',content=marker)],tokenize=False)
         ids=self.tok.encode(s.split(marker,1)[1],add_special_tokens=False)
         if not ids or self.encode('Tell me a joke.')[-len(ids):]!=ids:
             raise ValueError('Template suffix does not align in context')

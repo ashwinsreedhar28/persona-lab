@@ -25,6 +25,9 @@ See [model evidence and limitations](docs/MODEL_STATUS.md), [pinned release revi
 and the [research audit](docs/RESEARCH_AUDIT.md). Qwen attempt 2 stays local; its historical “refusal-first”
 folder name is not a quality ranking. Each model retains its upstream license and usage terms.
 
+[GLM and DeepSeek research support](docs/GLM_DEEPSEEK_RESEARCH.md) has small CPU fixture coverage;
+full-size exports and demos for those targets remain pending. They are not additional completed releases.
+
 ## Quick start
 
 Test the saved Qwen3.5-4B attempt-1 checkpoint on Apple silicon, without an additional steering hook:

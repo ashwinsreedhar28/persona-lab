@@ -110,7 +110,8 @@ def main():
         if not query.strip():
             continue
         messages=history+[dict(role='user',content=query)]
-        ids=engine.tok.apply_chat_template(messages,add_generation_prompt=True,tokenize=True,return_dict=False)
+        ids=engine.format_messages(messages) if hasattr(engine,'format_messages') else engine.tok.apply_chat_template(
+            messages,add_generation_prompt=True,tokenize=True,return_dict=False)
         streamer=TextStreamer(engine.tok,skip_special_tokens=True,clean_up_tokenization_spaces=False)
         tokens=[]
         print('assistant > ',end='',flush=True)

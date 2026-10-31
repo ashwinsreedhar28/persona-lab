@@ -66,7 +66,7 @@ def bundle(destination):
     # Publish/deploy the committed source, never the user's dirty worktree or
     # cached model data, raw evaluations, credentials, machine IDs or known_hosts.
     names=subprocess.check_output(['git','ls-files'],cwd=ROOT,text=True).splitlines()
-    include=[n for n in names if n in ('abliterate.py','research_checks.py','chat_cuda.py','requirements/cuda.txt','requirements/cloud.txt')
+    include=[n for n in names if n in ('abliterate.py','research_checks.py','chat_cuda.py','requirements/cuda.txt','requirements/cloud.txt','requirements/native-cuda.txt')
              or n.startswith(('abliteration/','cloud/'))]
     with tarfile.open(destination,'w:gz') as archive:
         for name in include:

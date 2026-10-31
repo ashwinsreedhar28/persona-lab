@@ -21,6 +21,7 @@ SUPPORTED_RELEASE_LICENSES={
     'google/gemma-3-4b-it':'gemma',
     'meta-llama/Llama-3.1-8B-Instruct':'llama3.1',
     'moonshotai/Kimi-Linear-48B-A3B-Instruct':'mit',
+    'deepseek-ai/DeepSeek-R1-0528-Qwen3-8B':'mit',
 }
 
 
@@ -60,7 +61,7 @@ def load_source(root,base_model,legacy_manifest=None,legacy_assets=None):
     return core,mapping,'release_manifest.json','files'
 
 
-def license_assets(license_id):
+def license_assets(license_id, base_model=None):
     assets=Path(__file__).with_name('licenses')
     mapping={'LICENSE_SOURCES.json':assets/'sources.json'}
     if license_id=='gemma':
@@ -69,7 +70,12 @@ def license_assets(license_id):
     elif license_id=='llama3.1':
         mapping['NOTICE']=assets/'Llama-NOTICE.txt'
     elif license_id=='mit':
-        mapping['LICENSE']=assets/'Kimi-Linear-MIT.txt'
+        names={None:'Kimi-Linear-MIT.txt',
+               'moonshotai/Kimi-Linear-48B-A3B-Instruct':'Kimi-Linear-MIT.txt',
+               'deepseek-ai/DeepSeek-R1-0528-Qwen3-8B':'DeepSeek-MIT.txt'}
+        if base_model not in names:
+            raise ValueError('No source-specific MIT license bundle for this model')
+        mapping['LICENSE']=assets/names[base_model]
         mapping['THIRD_PARTY_LICENSES/Apache-2.0.txt']=assets/'Apache-2.0.txt'
     elif license_id!='apache-2.0':raise ValueError('Unsupported license asset bundle')
     for file in mapping.values():
@@ -128,6 +134,8 @@ notice and policy files. No benchmark prompts, raw harmful completions or manual
     if license_id=='llama3.1':body+='\nBuilt with Llama. See LICENSE, NOTICE and USE_POLICY.md.\n'
     if 'Kimi-Linear' in base_model:
         body+='\n## Loading\n\nUse [persona-lab](https://github.com/ashwinsreedhar28/persona-lab)’s `chat_cuda.py` and pinned CUDA requirements, including its Kimi compatibility bridge and explicit `--trust-remote-code`. Example: `python chat_cuda.py --model /path/to/downloaded/checkpoint --trust-remote-code --max-tokens 1024`. The verified 96 GB GPU configuration uses batch size one and expandable CUDA allocator segments.\n'
+    if base_model=='deepseek-ai/DeepSeek-R1-0528-Qwen3-8B':
+        body+='\n## Architecture and loading\n\nThis is a DeepSeek reasoning release using the Qwen3 dense backbone; it does not establish native DeepSeek MoE architecture coverage. Use a separate environment with `requirements/native-cuda.txt`. The upstream DeepSeek chat template is preserved; it does not expose a switch to disable reasoning. Selection uses the recorded fixed first-token proxy and is not a comprehensive test of reasoning or refusal behavior.\n'
     return body
 
 
@@ -158,7 +166,7 @@ def publish(args):
                 file_specs[name]=sha_stream(stream);mapping[name]=stream
                 weight_hashes[name]=dict(source_file_sha256=digest(path),published_file_sha256=file_specs[name]['sha256'],tensor_payload_unchanged=True)
                 print('Prepared tensor-preserving notice:',name,flush=True)
-        for name,path in license_assets(args.license_id).items():mapping[name]=path
+        for name,path in license_assets(args.license_id,args.base_model).items():mapping[name]=path
         for required in ('LICENSE',):
             if required not in mapping:raise ValueError('Missing license: '+required)
         if args.license_id=='llama3.1' and 'USE_POLICY.md' not in mapping:raise ValueError('Missing Llama use policy')

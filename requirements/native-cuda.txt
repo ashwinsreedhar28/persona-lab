@@ -1,0 +1,10 @@
+# Separate environment for native GLM/Qwen3. Do not upgrade Kimi's pinned env.
+# Install into the matching CUDA/PyTorch image; retain its torch build.
+transformers==5.21.0
+huggingface-hub==2.3.0
+accelerate>=1.10,<2
+safetensors>=0.6,<1
+numpy>=1.26,<3
+requests>=2.32,<3
+sentencepiece
+protobuf

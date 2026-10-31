@@ -1,6 +1,6 @@
 # Model and checkpoint status
 
-Updated 2026-10-30. An implemented adapter, a saved checkpoint, and a validated behavioral result are
+Updated 2026-10-31. An implemented adapter, a saved checkpoint, and a validated behavioral result are
 separate milestones. Saved locations are listed in [MODEL_STORAGE.md](MODEL_STORAGE.md). New weight files and raw evaluation outputs are excluded from Git. The historical
 `legacy/refusal.eval.json` predates that output policy and remains an explicitly documented legacy artifact.
 
@@ -15,6 +15,11 @@ separate milestones. Saved locations are listed in [MODEL_STORAGE.md](MODEL_STOR
 
 The generic `--model` argument dispatches only to explicit, checked architectures. It does not support
 arbitrary models automatically. Kimi K3/K3.1 need separate architecture, licensing, hardware and validation work.
+
+New [GLM and DeepSeek research support](GLM_DEEPSEEK_RESEARCH.md) is at the small CPU fixture stage.
+GLM now covers the native and upstream expert layouts, and DeepSeek-R1-0528-Qwen3-8B uses the existing
+Qwen3 backbone mapping. Neither has a completed full-size export or demo yet. GPT-OSS support remains
+unimplemented. These targets must not be counted among the five completed releases above.
 
 The [fresh Qwen pilot](COMPARISON_RESULTS.md) measures attempt 1 separately from the historical
 JBB scores. Its 256-token response-prefix limit and narrow utility tasks constrain interpretation.

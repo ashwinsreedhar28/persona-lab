@@ -148,6 +148,10 @@ before terminating the GPU. This new export workflow is separate from the histor
 
 ## Chat with a saved CUDA checkpoint
 
+New [GLM/DeepSeek research adapters](GLM_DEEPSEEK_RESEARCH.md) use the separate
+[`requirements/native-cuda.txt`](../requirements/native-cuda.txt) environment. Small CPU fixtures have
+passed; full-size exports and demos remain pending. Keep Kimi's existing environment separate.
+
 Connect using the SSH command shown for your Runpod pod, then use the same CUDA Python environment
 as the export. Run only one full model process at a time. From the repository root on the pod:
 
