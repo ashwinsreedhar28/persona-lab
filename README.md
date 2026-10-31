@@ -202,6 +202,11 @@ A [4,096-token rerun on the same 98 prompts](docs/COMPARISON_LONG_RESULTS.md) me
 Remaining token-limit hits were 0/50 versus 0/50 harmful and
 0/48 versus 0/48 benign. This reuses the pilot data and does not establish broad capability preservation.
 
+The [256+256 calibration expansion](docs/CALIBRATION_V2.md) has completed data screening and local
+activation diagnostics. At a predeclared location, fold consistency increased from 0.9668 to 0.9813;
+validation AUROC was 1.00 for both sizes. A matched weight-edit comparison is still required before
+adoption. [Priorities, proposed GPT-OSS/GLM/DeepSeek targets and cloud costs](docs/ROADMAP.md).
+
 <details>
 <summary>Earlier Kimi Linear measurement-only study</summary>
 

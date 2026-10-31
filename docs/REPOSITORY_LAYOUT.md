@@ -7,7 +7,7 @@ Run commands from the repository root unless a guide says otherwise.
 | `abliteration/` | Direction selection, architecture maps, weight edits and verified export |
 | `cloud/` | HF publication, license assets and bounded Runpod jobs |
 | `docs/` | Export guide, model status, saved weights, audit and this map |
-| `evaluation/` | Fresh matched-comparison pilot; raw runs remain ignored |
+| `evaluation/` | Matched comparisons, calibration-data preparation and diagnostics; raw runs remain ignored |
 | `tests/` | Software regression tests and tiny model fixtures |
 | `tools/` | Vector builders, split audit, steering analysis and decoding experiments |
 | `assets/vectors/` | Four bundled activation vectors; newly built vectors default here |
