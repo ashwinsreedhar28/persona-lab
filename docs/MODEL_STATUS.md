@@ -12,15 +12,15 @@ separate milestones. Saved locations are listed in [MODEL_STORAGE.md](MODEL_STOR
 | Kimi Linear 48B A3B Instruct | Separately saved bf16 edit; [public HF release](https://huggingface.co/ashwin-sreedhar/Kimi-Linear-48B-A3B-Instruct-abliterated-bf16); former Runpod copies removed after verified backup | All 20,493 tensors checked, 6,711 edited. All 53 public-release files verified. Original hashes unchanged; fresh-process probe reload matched exactly. Held-out harmless KL 0.0756 and max projection ratio 0.636% pass the diagnostic references. Cached chat passed a harmless probe. Broad behavior/capability remains unverified. |
 | Qwen3-8B | Separately saved bf16 edit; [public HF release](https://huggingface.co/ashwin-sreedhar/Qwen3-8B-abliterated-bf16-public) | All 399 tensor payloads checked, 73 edited tensors, fresh-process probe reload matched exactly; 34 public-release files verified. Max projection ratio 1.075% (above 1%); held-out harmless KL 0.1152 (above 0.1). Full behavioral/capability evaluation is pending. |
 | Llama 3.1 8B Instruct | Separately saved bf16 edit; [public HF release](https://huggingface.co/ashwin-sreedhar/Llama-3.1-8B-Instruct-abliterated-bf16-public) | All 291 tensor payloads checked, 65 edited tensors, original hashes unchanged. Fresh-process probe reload matched exactly; 36 public-release files verified. Held-out harmless KL 0.0242; max projection ratio 1.387% (above 1%). Full bf16 chat and a three-token cached/uncached harmless probe also completed on a 48 GB A40. Broader behavior/capability remains unverified. |
+| GPT-OSS-20B | Separate dequantized bf16 edit; [public HF release](https://huggingface.co/ashwin-sreedhar/GPT-OSS-20B-abliterated-dequantized-bf16); retained Runpod volume | 411 tensors verified, 97 mapped tensors projected; original hashes unchanged; local and downloaded fresh-process probe reloads matched exactly; all 56 public files checked. Max projection ratio 1.0758% fails 1%; harmless KL 0.02635. **Manual testing reported continued refusals; refusal removal not demonstrated.** Generic analysis-opening token proxy is unvalidated. [Full record](GPT_OSS_RESEARCH.md). |
 
 The generic `--model` argument dispatches only to explicit, checked architectures. It does not support
 arbitrary models automatically. Kimi K3/K3.1 need separate architecture, licensing, hardware and validation work.
 
-New [GLM and DeepSeek research support](GLM_DEEPSEEK_RESEARCH.md) is at the small CPU fixture stage.
-GLM now covers the native and upstream expert layouts, and DeepSeek-R1-0528-Qwen3-8B uses the existing
-Qwen3 backbone mapping. [GPT-OSS support](GPT_OSS_RESEARCH.md) also has a tiny synthetic MXFP4-to-bf16
-conversion/reload fixture, expert projection tests and final-channel chat handling. None of the three
-has a completed full-size export or demo yet. They are not among the five completed releases above.
+[GPT-OSS](GPT_OSS_RESEARCH.md) has a completed full-size save and verified public download,
+with a negative manual behavioral result. GLM support remains at the CPU-fixture stage.
+Native DeepSeek-V2-Lite-Chat replaces the canceled Qwen-based DeepSeek target; its adapter and full-size
+run remain pending. Ministral and OLMo are also pending. The GPT-OSS metadata audit is complete; further model work is paused.
 
 The [fresh Qwen pilot](COMPARISON_RESULTS.md) measures attempt 1 separately from the historical
 JBB scores. Its 256-token response-prefix limit and narrow utility tasks constrain interpretation.
@@ -69,7 +69,7 @@ required before making a stronger behavioral claim, and non-refusal alone does n
 
 ## Distribution and licenses
 
-All five selected models have public experimental HF releases, linked above. The four earlier private
+Six models have public experimental HF releases, linked above. The four earlier private
 releases remain unchanged as archives; Qwen attempt 2 stays local. Public bundles include model cards,
 upstream license assets and modification notices inside safetensors headers. Header packaging changes
 file hashes, while tensor payloads, shapes, dtypes and offsets match the verified edited checkpoints.
@@ -80,6 +80,8 @@ original checkpoints requires the publisher's access agreement. The included not
 part of these derivative releases. Repository code is MIT; that does not relicense third-party models.
 Public HF storage is best effort, rather than guaranteed unlimited archival storage.
 
-The project's 250 GB Runpod volume was deleted on 2026-10-30 after all five public releases were
-reverified. Project compute is off and the volume's approximately $17.50/month storage charge has ended.
-Future GPU sessions need new storage and a checkpoint download. The export CLI itself provisions no GPU.
+The earlier 250 GB Runpod volume was deleted on 2026-10-30 after the first five public releases
+were reverified. A separate approved 300 GB volume now retains GPT-OSS source, prepared and edited
+copies and run evidence. It continues to cost approximately $21/month while retained. Project GPU
+compute is off. See [current storage](MODEL_STORAGE.md); the earlier storage deletion is not a claim
+that today's volume has been deleted.

@@ -1,0 +1,101 @@
+{
+  "model": "openai/gpt-oss-20b",
+  "source_revision": "6cee5e81ee83917806bbde320786a8fb61efebee",
+  "weight_verified_hf_revision": "de9728c079774d0dbbdb33be960aebf8c8676e18",
+  "documentation_hf_revision": "21c4cb5612b32be2ea1b9650f87c7a194b05efef",
+  "local_manifest_sha256": "197f402a6588a224cfa6dc9fb7fbcf32a87da45874ea3346e1bec881c10f135d",
+  "verified_metadata_files": [
+    ".pipeline/selection.json",
+    ".pipeline/measurements.json",
+    ".pipeline/probe.json",
+    ".pipeline/reference.npz",
+    ".pipeline/job.json"
+  ],
+  "selection": {
+    "auroc": 1.0,
+    "induce": 0.9116956536904489,
+    "kl": 0.031838498600909926,
+    "layer": 15,
+    "norm": 400.08428955078125,
+    "passes": true,
+    "pos": -1
+  },
+  "scored_tokens": [
+    {
+      "id": 1844,
+      "text": "User"
+    },
+    {
+      "id": 2167,
+      "text": "We"
+    }
+  ],
+  "prompt_policy": "Native Harmony template; reasoning_effort=low; explicit ordinary analysis header; eager attention with sinks and eager experts",
+  "harmless_edited_reload_probes": [
+    {
+      "prompt": "Reply with one word: hello.",
+      "first_generated_token": "User",
+      "proxy_probability_mass": 0.5111724138259888
+    },
+    {
+      "prompt": "What is 17 plus 25? Answer briefly.",
+      "first_generated_token": "Just",
+      "proxy_probability_mass": 0.023534927517175674
+    },
+    {
+      "prompt": "Write a short Python function that adds two numbers.",
+      "first_generated_token": "Just",
+      "proxy_probability_mass": 0.035632818937301636
+    }
+  ],
+  "worst_projection_site_index": 22,
+  "worst_projection_ratio": 0.010758114034394538,
+  "mechanical_threshold": 0.01,
+  "mechanical_pass": false,
+  "harmless_first_token_kl": 0.02635008668720624,
+  "confirmed_issue": "Selection uses generic analysis-opening words as an unvalidated refusal proxy. Passing this rule is not a validated refusal-removal result.",
+  "not_yet_established": [
+    "Causal explanation of all user-observed refusals",
+    "Matched final-answer refusal-rate change",
+    "Broad capability preservation"
+  ],
+  "manual_observation": {
+    "date": "2026-10-31",
+    "kind": "user_reported_manual_chat_check",
+    "observation": "Continued refusals on harmful test requests; user reports that refusal removal did not work in these checks.",
+    "prompt_count": null,
+    "matched_base_comparison": false,
+    "raw_prompts_or_completions_retained": false,
+    "claim": "Behavioral efficacy not established; do not describe this as successful refusal removal."
+  },
+  "weights_changed_by_this_audit": false,
+  "new_gpu_started": false,
+  "export_verification": {
+    "tensors_verified": 411,
+    "mapped_tensors_projected": 97,
+    "weight_shards": 13,
+    "public_files_verified": 56,
+    "original_hashes_unchanged": true,
+    "fresh_local_reload_max_logprob_error": 0.0,
+    "fresh_public_reload_max_logprob_error": 0.0,
+    "cached_uncached_three_token_match": true,
+    "scope": "Three benign prompts, three greedy steps; not broad capability or behavioral validation."
+  },
+  "source_preparation_manifest_sha256": "29e5dd8255ba8f6474da51050e327d569fa722c31587669ca19ce832a09a21ee",
+  "current_distribution_manifest_sha256": "7233b3b4b8e452fd139596df9dc0a9cb7b79b57754766f6b00a7ee7342c5263b",
+  "documentation_amendment": {
+    "weight_files_unchanged": true,
+    "changed_files": [
+      "README.md",
+      "manifest.json",
+      "COMPLETE"
+    ],
+    "history": [
+      "9b7450328f525d715dc999d3cbcd1b39a42783f1",
+      "21c4cb5612b32be2ea1b9650f87c7a194b05efef"
+    ]
+  },
+  "runtime_helper_revision": "6ad39c2556b2d60654d2303cf56a9af2b188d207",
+  "date": "2026-10-31",
+  "diagnostic_status": "metadata audit complete; further model work paused at user request"
+}

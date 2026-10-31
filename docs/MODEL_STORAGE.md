@@ -1,7 +1,8 @@
 # Saved edited checkpoints
 
-Updated 2026-10-30. All five selected models have separately saved bf16 edits. Qwen3.5-4B also has a
-second local experimental attempt. Weight files are excluded from Git; all five selected models also have public experimental Hugging Face releases.
+Updated 2026-10-31. Six models have separately saved bf16 edits and public experimental HF releases.
+Qwen3.5-4B also has a second local attempt. Weight files are excluded from Git. Saved weights do not
+imply successful refusal removal; GPT-OSS manual testing reported continued refusals.
 
 | Model / variant | Saved edited weights | Additional copies |
 |---|---|---|
@@ -11,17 +12,20 @@ second local experimental attempt. Weight files are excluded from Git; all five 
 | Qwen3-8B | [Public HF release](https://huggingface.co/ashwin-sreedhar/Qwen3-8B-abliterated-bf16-public) | Earlier private HF archive |
 | Llama 3.1 8B Instruct | [Public HF release](https://huggingface.co/ashwin-sreedhar/Llama-3.1-8B-Instruct-abliterated-bf16-public) | Earlier private HF archive |
 | Kimi Linear 48B A3B Instruct | [Public HF release](https://huggingface.co/ashwin-sreedhar/Kimi-Linear-48B-A3B-Instruct-abliterated-bf16) (20 shards, about 98.25 GB) | Direction, hashes and reproducibility metadata backed up to the Mac; original source pinned in export metadata |
+| GPT-OSS-20B | [Public HF release](https://huggingface.co/ashwin-sreedhar/GPT-OSS-20B-abliterated-dequantized-bf16) (13 shards, about 41.8 GB) | Separate original/prepared/edited copies retained on the new 300 GB Runpod volume; integrity verified, behavioral efficacy not established |
 
 The project's 250 GB Runpod volume was deleted on 2026-10-30 after all five public HF backups were
-reverified. Its Runpod weight copies and caches are gone; no project GPU/CPU pod remains. The volume's
-approximately $17.50/month storage charge no longer continues. The four earlier private HF releases remain as archives. Qwen attempt 2
-has not been uploaded. The five public releases total about 148 GB. HF provides public storage on a
+reverified. Those old weight copies and caches are gone; its approximately $17.50/month charge ended.
+A separate approved **300 GB standard volume** now retains GPT-OSS originals, preparation, edit and
+verification evidence. **GPU compute is off; this retained volume still costs about $21/month.**
+Do not treat the old deletion as deletion of current storage. The four earlier private HF releases remain as archives. Qwen attempt 2
+has not been uploaded. The six public releases total about 190 GB. HF provides public storage on a
 [best-effort basis](https://huggingface.co/docs/hub/storage-limits); free accounts include 100 GB of
 private storage. No paid HF plan was purchased.
 
 ## Integrity and originals
 
-The new Qwen attempt 2, Gemma, Qwen3, Kimi and Llama exports check every tensor's saved bytes, shape and dtype,
+The new Qwen attempt 2, Gemma, Qwen3, Kimi, Llama and GPT-OSS exports check every tensor's saved bytes, shape and dtype,
 preserve unedited tensors, and compare a fresh reload with the edited in-memory reference. Source files are
 SHA-256 checked before and after export. Each bundle records a source revision, file hashes, saved direction,
 selection rule, environment, tensor checks, reload result, manifest and completion seal.
@@ -62,5 +66,11 @@ These revisions identify the reviewed distribution metadata and exact file hashe
 | Qwen3-8B | [`490ba3303053`](https://huggingface.co/ashwin-sreedhar/Qwen3-8B-abliterated-bf16-public/tree/490ba3303053d88596ef0b6f7ba7ec3aa9d7fe95) |
 | Llama 3.1 8B Instruct | [`26f77a1c4263`](https://huggingface.co/ashwin-sreedhar/Llama-3.1-8B-Instruct-abliterated-bf16-public/tree/26f77a1c4263664086d507768371339d80299ebc) |
 | Kimi Linear 48B A3B Instruct | [`b9f8c132f896`](https://huggingface.co/ashwin-sreedhar/Kimi-Linear-48B-A3B-Instruct-abliterated-bf16/tree/b9f8c132f896b5aba54f760382673c4cc191b17b) |
+| GPT-OSS-20B | [`21c4cb5612b3`](https://huggingface.co/ashwin-sreedhar/GPT-OSS-20B-abliterated-dequantized-bf16/tree/21c4cb5612b32be2ea1b9650f87c7a194b05efef) |
+
+GPT-OSS was fully downloaded and freshly reloaded at `de9728c079774d0dbbdb33be960aebf8c8676e18`.
+The later revision above corrects the card and corresponding manifest/seal. All 13 weight-file hashes
+and other unchanged assets were verified against that earlier release; weights were not reuploaded
+or edited. [Detailed identity and limits](GPT_OSS_RESEARCH.md).
 
 The [cloud helpers](../cloud/README.md) reproduce verification and publication without modifying the local checkpoint.

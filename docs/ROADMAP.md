@@ -1,91 +1,68 @@
-# Proposed next work and cloud budget — 2026-10-31
+# Work order and cloud budget — 2026-10-31
 
-The user approved an initial $35 Runpod cap and a 300 GB temporary volume after this plan was written.
-That authorization does not mean the model runs are completed. The
-[Qwen expanded-calibration dataset and diagnostic](CALIBRATION_V2.md) are complete locally at $0
-cloud cost. No new-family GPU, network volume, subscription or HF repository was created.
-GLM/DeepSeek [small CPU adapter fixtures](GLM_DEEPSEEK_RESEARCH.md) now pass; full-size work is pending.
-The original 128-row calibration remains the default until the controlled comparison establishes a
-qualifying benefit for the expanded split. The expanded split has not been promoted.
+The GPT-OSS metadata audit is complete. At the user's request, further model work is paused.
+Its edited checkpoint is saved on public HF and the retained volume. Serialization/reload passed;
+manual testing reported continued refusals. [Completed run and diagnostic](GPT_OSS_RESEARCH.md).
 
-## Priority by expected impact
+## Current order
 
-1. **Finish the controlled Qwen calibration experiment.** Match current 128-row and expanded 256-row
-   edits using the same selection/edit policy and a frozen independent confirmation set. This is the
-   most direct route to checking whether the expanded corpus improves a checkpoint.
-2. **Improve independent evaluation.** Use broader benign capability tasks and a blinded human audit
-   of classifier disagreements; score full answers and report mixed refusal/compliance. StrongREJECT
-   documents why apparent non-refusal can overstate answer effectiveness. Keep new tests separate
-   from calibration and source selection. This has the highest confidence of improving conclusions.
-3. **Add the three requested families with matched validation.** Start one model at a time after
-   calibration is validated and a spending cap is approved. Shared data do not imply shared vectors.
-4. **Make verified smaller chat exports.** Convert completed bf16 edits to supported inference formats
-   and check the quality impact. This offers practical local-use value independently of a new edit.
-5. **Explore richer editing methods.** Multiple directions, layer-specific choices or stronger selection
-   rules need a new predeclared study and capability controls. Potential upside is uncertain.
-6. **Expand family coverage further.** Mistral/Ministral and OLMo are the strongest optional additions
-   below; completing the current batch has higher priority than collecting more releases.
+1. **GPT-OSS diagnostic:** document the negative manual result, audit checkpoint/formatting/parsing
+   evidence and the nonspecific first-analysis-token proxy. This audit is complete; the checkpoint is unchanged.
+2. **GLM-4.7-Flash:** checked CPU fixtures and source-specific license packaging exist; full-size
+   conversion/edit, save, upload and validation remain pending.
+3. **Native DeepSeek-V2-Lite-Chat:** replaces DeepSeek-R1-0528-Qwen3-8B. No need to run both. Native
+   writer mapping and model-license review remain pending; no full-size checkpoint exists.
+4. **Ministral 3 8B Instruct BF16:** approved addition; architecture/normalization, packaging and
+   download-layout review remain pending. Text-only validation would not cover vision.
+5. **OLMo 3 7B Instruct:** approved addition; architecture/normalization and baseline review remain
+   pending. No full-size checkpoint exists.
 
-## Candidate models
+Items 2–5 are deferred until a future session. This order records requested scope, not completed
+runs or a claim of successful refusal removal. Future experiments require matched benign utility
+and independently reviewed behavioral evidence, rather than selecting on an unvalidated token proxy.
 
-| Proposed target | Purpose and readiness | Approximate edited bf16 weights |
-|---|---|---:|
-| `openai/gpt-oss-20b` | New MoE/Harmony coverage; Apache 2.0. Needs a new checked adapter and separate dequantized bf16 working copy. | ~42 GB |
-| `zai-org/GLM-4.7-Flash` | Native GLM 30B-A3B MoE/MLA coverage; MIT. Needs new writer mapping, dependency environment and validation. | ~62 GB |
-| `deepseek-ai/DeepSeek-R1-0528-Qwen3-8B` | Economical DeepSeek reasoning release; MIT with upstream notices retained. Uses a Qwen3 backbone, so it adds behavioral coverage rather than a new native DeepSeek architecture. Existing Qwen3 mapping is a starting point, not a full-run validation. | ~16 GB |
+| Target | Pinned source revision | Status |
+|---|---|---|
+| `openai/gpt-oss-20b` | `6cee5e81ee83917806bbde320786a8fb61efebee` | Saved/verified; negative manual result; metadata audit complete |
+| `zai-org/GLM-4.7-Flash` | `7dd20894a642a0aa287e9827cb1a1f7f91386b67` | CPU fixtures; full-size pending |
+| `deepseek-ai/DeepSeek-V2-Lite-Chat` | `85864749cd611b4353ce1decdb286193298f64c7` | Native adapter/license review pending; older 2024 release |
+| `mistralai/Ministral-3-8B-Instruct-2512-BF16` | `f6fae9795746f63c9be8344932f01275f3c63734` | Adapter/download-layout review pending |
+| `allenai/Olmo-3-7B-Instruct` | `6e5971d9eba42665f5bd5a0fcf047f299ce1dccc` | Adapter/normalization review pending |
 
-The DeepSeek alternative for native architecture coverage is `deepseek-ai/DeepSeek-V2-Lite-Chat`
-(16B, about 32 GB bf16). It is an older model and requires separate adapter and model-license review.
-Choose one DeepSeek target initially. Full flagship GPT-OSS/GLM/DeepSeek sizes are outside this first
-budget. MoE active-parameter counts reduce computation, while storage must still hold all experts.
+The canceled Qwen-based DeepSeek target was not run. Generic `--model` does not imply arbitrary
+architecture support. Source preservation, hashes and fresh reloads are required for every model.
 
-GPT-OSS publishes MoE weights in MXFP4. Our current policy rejects editing packed quantized weights.
-A new implementation must preserve the original release, dequantize to a separate bf16 source,
-compare against that same dequantized baseline, edit in bf16/fp32 and record conversion provenance.
-Dequantization does not recover precision lost in the released representation. Harmony formatting,
-reasoning settings, expert writers/biases, harmless probes and cached/uncached behavior require checks.
+## Calibration and evaluation
 
-Official sources: [GPT-OSS model](https://developers.openai.com/api/docs/models/gpt-oss-20b),
-[precision and inference](https://developers.openai.com/cookbook/articles/gpt-oss/run-transformers),
-[format verification](https://developers.openai.com/cookbook/articles/gpt-oss/verifying-implementations),
-[GLM card](https://huggingface.co/zai-org/GLM-4.7-Flash),
-[DeepSeek reasoning card](https://huggingface.co/deepseek-ai/DeepSeek-R1-0528-Qwen3-8B),
-[native DeepSeek alternative](https://huggingface.co/deepseek-ai/DeepSeek-V2-Lite-Chat).
+The [expanded 256+256 dataset and local diagnostics](CALIBRATION_V2.md) are complete, but the
+controlled Qwen weight-edit comparison has not been completed. The expanded split has **not** earned
+promotion. GPT-OSS used the original 128+128 training split and fixed validation/KL files. Directions
+are model-specific. No threshold or original Qwen attempt limit has changed.
 
-## Proposed budget and HF storage
+For GPT-OSS, the selected proxy tokens were `User` and `We` in the analysis channel. A proxy pass is
+not a validated final-answer refusal reduction. First establish an interpretable measurement before
+any claims of improvement. Broader benign capability checks remain incomplete for the new families.
 
-Runpod's published Secure Cloud rates and read-only catalog check on 2026-10-31 show an A100 80 GB
-at **$1.79/hour**, or the RTX PRO 6000 Server 96 GB at **$2.49/hour**. The latter gives more headroom
-for the new adapters. Stock and the actual deployment quote must be rechecked before starting.
+## Approved resources and actual state
 
-An **estimated planning allowance of 6–12 GPU hours across the three targets** is $10.74–21.48 on
-A100 or $14.94–29.88 on the 96 GB card. These runtimes are estimates, not measured runs or a guarantee;
-adapter debugging, extended benchmarks and failed jobs can require more. Approve a cap and start one
-family before committing the rest. The **$35 initial Runpod cap is now approved**. An optional HF subscription is separate and has not been purchased.
+The initial **$35 Runpod compute cap** and **300 GB temporary standard network volume** were approved.
+Recorded estimated compute so far is **$3.9168**, including the earlier failed setup worker; this is
+an estimate, not an invoice. All project GPU workers are terminated. The retained volume holds GPT-OSS
+original/prepared/edited copies and evidence and costs about **$21/month** (~$0.70/day, 30-day estimate).
+Storage continues after GPU shutdown. No new GPU was started for the metadata diagnostic.
 
-A **300 GB standard temporary network volume** is **$21/month**, approximately **$0.70/day** or
-**$0.35 for 12 hours**, using a 30-day-month estimate. A 40 GB container disk adds about $0.07 over
-12 hours at the published $0.10/GB/month rate. Network storage keeps billing after GPU shutdown
-until deleted. Process/upload models sequentially and recheck peak disk needs if the native DeepSeek
-alternative is chosen. Source/dequantized/edit copies plus software must fit before starting.
+The previous working 96 GB GPU cost $2.49/hour. Availability and the actual quote must be checked before
+any new allocation, with the cumulative budget carried forward and a bounded termination deadline.
+The earlier 6–12 hour estimate covered only three targets; it is not a measured forecast for the
+expanded five-model scope. Sequential storage cleanup requires verified backups and must preserve originals.
 
-The three proposed edited checkpoints add roughly **120 GB** to the existing ~148 GB public releases.
-HF public storage is **best-effort** on a free account, not guaranteed unlimited storage. If an upgrade
-is needed, HF currently lists PRO at **$9/month**, with up to 10 TB public and 1 TB private storage.
-No subscription was purchased. Use HF as the long-term destination; retaining an idle GPU is not a
-substitute for HF capacity. Keep the temporary volume until all uploaded files have been verified
-against hashes and a fresh download/reload check passes, then remove temporary cloud storage under
-the approved run/cleanup plan. Retain upstream licenses and modification notices.
+Six public experimental releases currently total about 190 GB. HF is the intended long-term destination;
+public storage is best effort, not a guaranteed unlimited archive. No HF subscription was purchased.
+New model runs must include reviewed model-card limitations, retained upstream license/notice assets,
+file verification and a fresh download/reload before claiming a completed release. Source pins and
+checkpoint identities are recorded in [storage](MODEL_STORAGE.md).
 
-Sources: [Runpod pricing](https://www.runpod.io/pricing),
+Pricing references (last checked 2026-10-31): [Runpod](https://www.runpod.io/pricing),
 [HF limits](https://huggingface.co/docs/hub/storage-limits), [HF PRO](https://huggingface.co/pro).
 
-## Optional later families
-
-- [Ministral 3 8B Instruct BF16](https://huggingface.co/mistralai/Ministral-3-8B-Instruct-2512-BF16):
-  Apache 2.0, independent model lineage and practical size. A text-only first study would not validate
-  its vision behavior. Use the official bf16 source and preserve the original.
-- [OLMo 3 7B Instruct](https://huggingface.co/allenai/Olmo-3-7B-Instruct): Apache 2.0 and useful training
-  transparency for research. Establish its baseline behavior first to determine whether an edit adds value.
-
-[Calibration evidence](CALIBRATION_V2.md) · [Current supported models](MODEL_STATUS.md) · [README](../README.md)
+[GPT-OSS evidence](GPT_OSS_RESEARCH.md) · [Model status](MODEL_STATUS.md) · [README](../README.md)

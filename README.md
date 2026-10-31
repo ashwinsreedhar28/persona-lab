@@ -5,7 +5,7 @@ independent **bf16 checkpoint**. Start with a supported model ID; keep the origi
 source revisions, hashes, the selected intervention, tensor checks and a fresh-process reload.
 
 Public experimental checkpoints are available for **Qwen3.5-4B, Qwen3-8B, Gemma 3 4B IT,
-Llama 3.1 8B Instruct and Kimi Linear 48B A3B Instruct**. Optional activation-steering tools remain
+Llama 3.1 8B Instruct, Kimi Linear 48B A3B Instruct and GPT-OSS-20B**. Optional activation-steering tools remain
 available below for comparison and earlier experiments.
 
 “Abliterated” describes the weight intervention. It does not guarantee refusal-free responses or
@@ -20,14 +20,19 @@ preserved capability. Checkpoint integrity and behavioral quality are evaluated 
 | Qwen3-8B | PyTorch / CUDA | [Download](https://huggingface.co/ashwin-sreedhar/Qwen3-8B-abliterated-bf16-public) |
 | Llama 3.1 8B Instruct | PyTorch / CUDA | [Download](https://huggingface.co/ashwin-sreedhar/Llama-3.1-8B-Instruct-abliterated-bf16-public) |
 | Kimi Linear 48B A3B Instruct | PyTorch / CUDA; pinned custom code | [Download](https://huggingface.co/ashwin-sreedhar/Kimi-Linear-48B-A3B-Instruct-abliterated-bf16) |
+| GPT-OSS-20B | PyTorch / CUDA; separately dequantized bf16; negative behavioral result | [Download](https://huggingface.co/ashwin-sreedhar/GPT-OSS-20B-abliterated-dequantized-bf16) |
 
 See [model evidence and limitations](docs/MODEL_STATUS.md), [pinned release revisions and storage](docs/MODEL_STORAGE.md),
 and the [research audit](docs/RESEARCH_AUDIT.md). Qwen attempt 2 stays local; its historical “refusal-first”
 folder name is not a quality ranking. Each model retains its upstream license and usage terms.
 
-[GLM and DeepSeek research support](docs/GLM_DEEPSEEK_RESEARCH.md) and
-[GPT-OSS preparation/support](docs/GPT_OSS_RESEARCH.md) have small CPU fixture coverage.
-Full-size exports and demos remain pending. They are not additional completed releases.
+**GPT-OSS refusal removal has not been demonstrated.** Its edited checkpoint was saved, fully
+downloaded and reloaded successfully, but manual testing reported continued refusals. Its maximum
+projection ratio also missed the fixed 1% reference. The selector scored generic reasoning-opening
+words, an unvalidated refusal proxy. [Completed run, diagnostic and limitations](docs/GPT_OSS_RESEARCH.md).
+
+[GLM and native DeepSeek](docs/GLM_DEEPSEEK_RESEARCH.md), Ministral and OLMo remain pending.
+The GPT-OSS metadata audit is complete; further model work is paused. [Work order](docs/ROADMAP.md).
 
 ## Quick start
 
@@ -209,7 +214,7 @@ Remaining token-limit hits were 0/50 versus 0/50 harmful and
 The [256+256 calibration expansion](docs/CALIBRATION_V2.md) has completed data screening and local
 activation diagnostics. At a predeclared location, fold consistency increased from 0.9668 to 0.9813;
 validation AUROC was 1.00 for both sizes. A matched weight-edit comparison is still required before
-adoption. [Priorities, proposed GPT-OSS/GLM/DeepSeek targets and cloud costs](docs/ROADMAP.md).
+adoption. [Current priorities, model targets and cloud budget](docs/ROADMAP.md).
 
 <details>
 <summary>Earlier Kimi Linear measurement-only study</summary>

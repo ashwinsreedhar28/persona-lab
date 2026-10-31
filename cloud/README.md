@@ -20,7 +20,7 @@ python cloud/publish_hf.py --checkpoint /path/to/verified/checkpoint \
 ```
 
 Use `apache-2.0`, `gemma`, `llama3.1`, or `mit` only for the corresponding supported source.
-Source/license pairs are restricted to the five reviewed model IDs in `publish_hf.py`;
+Source/license pairs are restricted to explicit reviewed model IDs in `publish_hf.py`;
 a new source requires its own reviewed license bundle. The legacy Qwen attempt-1 release additionally requires its reviewed `--legacy-manifest` and
 `--legacy-assets`; it does not acquire the newer export's tensor/reload provenance.
 Existing repos containing another checkpoint are rejected. Existing private releases can be kept
@@ -61,3 +61,18 @@ edited outputs remain separate; the export must pass its normal serialization an
 before any release is attempted.
 
 Run CPU-only tests with `python -m unittest -v tests.test_cloud_release`.
+
+## Correcting a published card without changing weights
+
+`update_card.py` amends README, its manifest entry and the completion seal in one commit. It requires
+the authenticated owner's namespace and an expected immutable revision; concurrent changes stop the
+operation. The existing seal and README hash are checked, model-card metadata must remain unchanged,
+and every remote file reference is verified after the amendment. Weight files are not reuploaded.
+
+```sh
+python cloud/update_card.py --repo-id OWNER/MODEL --expected-revision REVIEWED_40_CHARACTER_COMMIT \
+  --card /path/to/reviewed-README.md --result /path/outside/git/card-amendment.json
+```
+
+The result records the prior/new revisions and seal. A documentation update adds no behavioral evidence.
+Pure seal-preservation checks run with `python -m unittest tests.test_card_update`.
