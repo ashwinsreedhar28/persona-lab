@@ -18,6 +18,8 @@ arbitrary models automatically. Kimi K3/K3.1 need separate architecture, licensi
 
 The [fresh Qwen pilot](COMPARISON_RESULTS.md) measures attempt 1 separately from the historical
 JBB scores. Its 256-token response-prefix limit and narrow utility tasks constrain interpretation.
+The [4,096-token rerun](COMPARISON_LONG_RESULTS.md) reuses the same prompts and reports remaining
+token-limit hits separately.
 
 ## Interpreting the Kimi edit
 

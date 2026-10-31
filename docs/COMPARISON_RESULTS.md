@@ -1,5 +1,7 @@
 # Qwen3.5-4B fresh matched pilot — 2026-10-30
 
+[Subsequent 4,096-token rerun on these same prompts](COMPARISON_LONG_RESULTS.md).
+
 A descriptive comparison of original bf16 Qwen3.5-4B and the preselected historical attempt-1 edit.
 Both received identical token IDs, greedy decoding, thinking disabled and no activation steering.
 This is a **short-response pilot**, not a full-response capability or universal refusal-removal result.

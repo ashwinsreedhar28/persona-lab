@@ -196,6 +196,12 @@ versus 19/32. **44/50 edited harmful responses hit the 256-token allowance**, an
 answers were also cut off. These are response-prefix and budgeted-task results, not full-response
 capability preservation. [Paired results, component scores and limitations](docs/COMPARISON_RESULTS.md).
 
+A [4,096-token rerun on the same 98 prompts](docs/COMPARISON_LONG_RESULTS.md) measured
+50/50 versus 7/50 harmful classifier refusals and
+29/32 versus 27/32 strict utility scores (original versus attempt 1).
+Remaining token-limit hits were 0/50 versus 0/50 harmful and
+0/48 versus 0/48 benign. This reuses the pilot data and does not establish broad capability preservation.
+
 <details>
 <summary>Earlier Kimi Linear measurement-only study</summary>
 

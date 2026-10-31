@@ -2,6 +2,8 @@
 
 [Completed 2026-10-30 results, cutoffs and limits](COMPARISON_RESULTS.md).
 
+[Completed 4,096-token rerun on the same prompts](COMPARISON_LONG_RESULTS.md).
+
 This is a small comparison of Qwen3.5-4B bf16 and the preselected historical attempt-1 edit. It uses
 50 unused harmful-pool rows starting after the original reserved first 200, 32 seeded synthetic utility
 tasks and 16 new benign writing/explanation requests. Normalized exact and shared-word-8-gram matches
@@ -41,5 +43,21 @@ prompt set should be rerun from its saved, verified inputs rather than described
 Always run one full model at a time on a 16 GB Mac. Publish aggregates and per-prompt labels only;
 raw prompts/responses remain in ignored `abl/out/`. The legacy attempt-1 source lineage is incomplete,
 so this is a descriptive checkpoint comparison, not a fully reconstructed causal experiment.
+
+## Repeating with a larger response allowance
+
+The 4,096-token rerun reused the original saved 98 prompts and targets, rather than preparing or
+selecting new data. Only each row's `max_tokens` changed from 128/256 to 4096. Both model-file
+inventories were reverified, and prompt-token-ID hashes matched between models and between runs.
+The original run and its public aggregate record remain unchanged. The allowance was chosen after
+observing the first run's cutoffs, so this is a length-sensitivity rerun on previously evaluated data.
+
+To repeat this variant from the saved original inputs, create a new empty ignored run folder, copy its
+`prompts.json`, `config.json` and source provenance, set every prompt's `max_tokens` to 4096, and update
+`prompts_sha256` in the copied config to the new file's SHA-256. Preserve prompt text, IDs, ordering,
+targets, model paths, checked hashes, frozen harness/source and all other settings; verify the model
+files against the copied inventory first. Record the original config/prompt/report hashes as parent
+lineage. Then run the same two `generate` stages, local `judge` and `report` commands above with the
+new run folder, omitting `prepare`. Keep raw text local and report remaining token-limit hits.
 
 [README](../README.md) · [Model evidence](MODEL_STATUS.md) · [Audit](RESEARCH_AUDIT.md)
