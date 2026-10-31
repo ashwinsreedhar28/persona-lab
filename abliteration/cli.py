@@ -136,7 +136,19 @@ def run(args):
     # Reject existing outputs before Hub access.
     if Path(requested).exists() or Path(requested).is_symlink():
         raise FileExistsError(f'Output already exists: {requested}; choose a new name')
-    source, cfg, provenance = resolve_source(args.model, args.revision, args.offline)
+    conversion=None
+    if getattr(args,'prepared_source',None):
+        from .conversion import verify_prepared
+        source=Path(args.prepared_source).expanduser().resolve()
+        conversion=verify_prepared(source,args.model,args.revision)
+        _,original_config,origin=resolve_config(args.model,args.revision,args.offline)
+        if original_config!=json.loads((source/'.conversion/job.json').read_text())['raw_config']:
+            raise ValueError('Prepared source original configuration differs')
+        cfg=json.loads((source/'config.json').read_text())
+        provenance=dict(kind='prepared',repo_id=args.model,revision=conversion['origin'].get('revision'),
+                        conversion_manifest_sha256=conversion['manifest_sha256'])
+    else:
+        source, cfg, provenance = resolve_source(args.model, args.revision, args.offline)
     adapter = adapter_for(cfg)
     output = destination(source, requested)
     if adapter == 'kimi-torch' and not args.trust_remote_code:
@@ -144,6 +156,9 @@ def run(args):
     inv = inventory(source)
     modes = writers(cfg, inv)
     files = source_files(source)
+    if conversion:
+        files=sorted(set(files)|{n for n in conversion['files'] if n.startswith('.conversion/')}|
+                     {'.conversion/manifest.json','.conversion/COMPLETE'})
     if any(v['shard'] not in files for v in inv.values()):
         raise ValueError('Source inventory contains a shard outside the allowed file set')
     data = Path(args.data).expanduser().resolve()
@@ -164,6 +179,8 @@ def run(args):
         trust_remote_code=args.trust_remote_code,
         intervention_policy='Gemma: project each normalized writer along unit((1+norm_weight)*r); other writers along r'
             if cfg['model_type']=='gemma3' else 'Project residual writers along r',
+        prompt_policy='Native Harmony template; reasoning_effort=low; eager attention with sinks and eager experts'
+            if cfg['model_type']=='gpt_oss' else 'Native template; enable_thinking=False where supported; record actual suffix IDs',
         reload_atol=args.reload_atol if args.reload_atol is not None else (1e-5 if adapter == 'qwen-mlx' else .02))
     write_json(meta / 'job.json', job)
     start = time.monotonic()
@@ -180,6 +197,10 @@ def run(args):
             run_worker(meta / 'job.json', stage)
         if hashes(source, files) != source_hashes:
             raise ValueError('Original source changed during the run; refusing publication')
+        if conversion:
+            from .conversion import verify_prepared
+            if verify_prepared(source,args.model,args.revision)['manifest_sha256']!=conversion['manifest_sha256']:
+                raise ValueError('Prepared/raw source changed during export')
         if code_state()['sha256'] != state['sha256']:
             raise ValueError('Pipeline code changed during the run; refusing publication')
         if {name: digest(data / f'{name}.json') for name in names} != split_hashes:
@@ -222,6 +243,7 @@ def parser():
     r = sub.add_parser('run')
     r.add_argument('--model', required=True, help='Hub model ID or original local bf16 checkpoint')
     r.add_argument('--revision', help='Source Hub revision; resolved to immutable commit before any load')
+    r.add_argument('--prepared-source',type=Path,help='Verified separate GPT-OSS bf16 preparation; original --model identity is retained')
     r.add_argument('--output', type=Path, help='New directory; default models/<model>-abliterated-<UTC time>')
     r.add_argument('--data', type=Path, default=ROOT / 'abl/data', help='Existing fixed train/validation/KL splits')
     r.add_argument('--direction', type=Path, help='Explicitly import an existing unit .npy direction instead of extracting/selecting')

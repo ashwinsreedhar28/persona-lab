@@ -22,6 +22,7 @@ SUPPORTED_RELEASE_LICENSES={
     'meta-llama/Llama-3.1-8B-Instruct':'llama3.1',
     'moonshotai/Kimi-Linear-48B-A3B-Instruct':'mit',
     'deepseek-ai/DeepSeek-R1-0528-Qwen3-8B':'mit',
+    'openai/gpt-oss-20b':'apache-2.0',
 }
 
 
@@ -136,6 +137,8 @@ notice and policy files. No benchmark prompts, raw harmful completions or manual
         body+='\n## Loading\n\nUse [persona-lab](https://github.com/ashwinsreedhar28/persona-lab)’s `chat_cuda.py` and pinned CUDA requirements, including its Kimi compatibility bridge and explicit `--trust-remote-code`. Example: `python chat_cuda.py --model /path/to/downloaded/checkpoint --trust-remote-code --max-tokens 1024`. The verified 96 GB GPU configuration uses batch size one and expandable CUDA allocator segments.\n'
     if base_model=='deepseek-ai/DeepSeek-R1-0528-Qwen3-8B':
         body+='\n## Architecture and loading\n\nThis is a DeepSeek reasoning release using the Qwen3 dense backbone; it does not establish native DeepSeek MoE architecture coverage. Use a separate environment with `requirements/native-cuda.txt`. The upstream DeepSeek chat template is preserved; it does not expose a switch to disable reasoning. Selection uses the recorded fixed first-token proxy and is not a comprehensive test of reasoning or refusal behavior.\n'
+    if base_model=='openai/gpt-oss-20b':
+        body+='\n## Precision provenance and chat\n\nThe publisher released the expert weights in MXFP4. This checkpoint was edited from a separately saved, verified bf16 dequantization of that release. Dequantization does not recover precision lost during quantization; this is not an original full-precision OpenAI release. The unedited comparison baseline is that same dequantized representation. Conversion provenance is retained in `.conversion/` and the source manifest. Use the separate `requirements/native-cuda.txt` environment and `chat_cuda.py`, which uses eager attention with sinks, native eager experts, the Harmony template at low reasoning effort, and displays only the final assistant channel. No tools are executed.\n'
     return body
 
 

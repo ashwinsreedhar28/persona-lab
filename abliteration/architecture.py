@@ -8,7 +8,7 @@ def adapter_for(config):
     kind = config.get('model_type')
     if kind == 'qwen3_5' and config.get('text_config', {}).get('model_type') == 'qwen3_5_text':
         return 'qwen-mlx'
-    if kind in ('qwen3', 'llama', 'glm4_moe_lite'):
+    if kind in ('qwen3', 'llama', 'glm4_moe_lite', 'gpt_oss'):
         return 'dense-torch'
     if kind == 'gemma3' and config.get('text_config', {}).get('model_type') == 'gemma3_text':
         return 'dense-torch'
@@ -33,12 +33,16 @@ def writers(config, tensors):
         spec = tensors[key]
         if spec['dtype'] != 'BF16':
             raise ValueError(f'Residual writer must be bf16: {key}')
-        axis = -1 if mode == 'embedding' else 1 if mode == 'expert_linear' else 0
-        rank = 3 if mode == 'expert_linear' else 1 if mode == 'bias' else 2
+        axis = -1 if mode in ('embedding','expert_embedding','expert_bias') else 1 if mode == 'expert_linear' else 0
+        rank = 3 if mode in ('expert_linear','expert_embedding') else 1 if mode == 'bias' else 2
         if len(spec['shape']) != rank or spec['shape'][axis] != hidden:
             raise ValueError(f'Unexpected residual writer shape: {key}')
         if mode == 'expert_linear' and spec['shape'] != [c['n_routed_experts'], hidden, c['moe_intermediate_size']]:
             raise ValueError(f'Unexpected expert writer shape: {key}')
+        if mode == 'expert_embedding' and spec['shape'] != [c['num_local_experts'], c['intermediate_size'], hidden]:
+            raise ValueError(f'Unexpected GPT-OSS expert shape: {key}')
+        if mode == 'expert_bias' and spec['shape'] != [c['num_local_experts'], hidden]:
+            raise ValueError(f'Unexpected GPT-OSS expert bias shape: {key}')
         modes[key] = mode
     def linear(prefix):
         add(prefix + '.weight', 'linear')
@@ -66,6 +70,13 @@ def writers(config, tensors):
                 for j in range(c['num_experts']):
                     linear(prefix + f'.block_sparse_moe.experts.{j}.w2')
                 linear(prefix + '.block_sparse_moe.shared_experts.down_proj')
+    elif config['model_type'] == 'gpt_oss':
+        add('model.embed_tokens.weight', 'embedding')
+        for i in range(n):
+            prefix = f'model.layers.{i}'
+            linear(prefix + '.self_attn.o_proj')
+            add(prefix + '.mlp.experts.down_proj', 'expert_embedding')
+            add(prefix + '.mlp.experts.down_proj_bias', 'expert_bias')
     elif config['model_type'] == 'glm4_moe_lite':
         add('model.embed_tokens.weight', 'embedding')
         types = c.get('mlp_layer_types')
@@ -116,7 +127,7 @@ def writers(config, tensors):
                 add(projector, 'embedding')  # Stored as (vision_hidden, text_hidden), right-multiplied.
             normalization_scales(config, tensors)  # Validate the post-writer normalization dependencies.
     # Refuse unaccounted writer-like keys, including a new expert/layout variant.
-    writer_like = re.compile(r'(?:(?:\.down_proj|\.out_proj|\.o_proj|\.w2|\.merger\.linear_fc2)\.(?:weight|bias)|\.experts\.down_proj)$')
+    writer_like = re.compile(r'(?:(?:\.down_proj|\.out_proj|\.o_proj|\.w2|\.merger\.linear_fc2)\.(?:weight|bias)|\.experts\.down_proj(?:_bias)?)$')
     # Upstream GLM stores next-token-prediction modules after the decoder. They
     # are preserved byte-for-byte, never edited or claimed as verified inference.
     mtp_prefixes = ()

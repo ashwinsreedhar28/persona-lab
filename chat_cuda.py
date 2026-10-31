@@ -113,18 +113,24 @@ def main():
         ids=engine.format_messages(messages) if hasattr(engine,'format_messages') else engine.tok.apply_chat_template(
             messages,add_generation_prompt=True,tokenize=True,return_dict=False)
         streamer=TextStreamer(engine.tok,skip_special_tokens=True,clean_up_tokenization_spaces=False)
+        final_channel=None
+        if job['config']['model_type']=='gpt_oss':
+            from abliteration.harmony_chat import FinalChannel
+            final_channel=FinalChannel(engine.tok)
         tokens=[]
         print('assistant > ',end='',flush=True)
         try:
             for token in greedy_ids(engine,ids,eos,a.max_tokens,not a.no_cache):
                 tokens.append(token)
-                streamer.put(engine.torch.tensor([token]))
+                if final_channel is None or final_channel.put(token):
+                    streamer.put(engine.torch.tensor([token]))
         except KeyboardInterrupt:
             print('\n[Generation interrupted.]',flush=True)
         finally:
             streamer.end()
-        reply=engine.tok.decode(tokens,skip_special_tokens=True)
-        history=messages+[dict(role='assistant',content=reply)]
+        reply=final_channel.text() if final_channel else engine.tok.decode(tokens,skip_special_tokens=True)
+        if reply:history=messages+[dict(role='assistant',content=reply)]
+        elif final_channel:print('[No final answer produced; /reset or retry with a larger token allowance.]',flush=True)
         if len(tokens)==a.max_tokens:
             print(f'[Reached {a.max_tokens} generated tokens; raise --max-tokens for a longer answer.]',flush=True)
         if a.prompt is not None:

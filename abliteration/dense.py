@@ -18,10 +18,14 @@ def project(w, mode, r, norm_weight=None):
     Selection therefore uses actual temporary weight edits, including the changed denominator.
     """
     import torch
-    if mode == 'expert_linear':
+    if mode in ('expert_linear','expert_embedding'):
         if w.ndim != 3 or norm_weight is not None:
             raise ValueError('Expert projections require unnormalized [expert, out, in] tensors')
-        return torch.stack([transform(expert, 'linear', r) for expert in w])
+        return torch.stack([transform(expert, 'linear' if mode=='expert_linear' else 'embedding', r) for expert in w])
+    if mode == 'expert_bias':
+        if w.ndim != 2 or norm_weight is not None:
+            raise ValueError('Expert biases require [expert, hidden] tensors')
+        return transform(w,'embedding',r)
     if norm_weight is not None:
         v = r * (1 + norm_weight.float())
         norm = torch.linalg.vector_norm(v)
@@ -45,11 +49,11 @@ class Engine(KimiEngine):
         # Fail on tokenizer/config incompatibility before loading full model weights.
         self.tok = AutoTokenizer.from_pretrained(source, local_files_only=True)
         self.loaded = loader.from_pretrained(source, torch_dtype=torch.bfloat16, device_map=device,
-            local_files_only=True, attn_implementation='sdpa')
+            local_files_only=True, attn_implementation='eager' if config['model_type']=='gpt_oss' else 'sdpa')
         self.loaded.eval()
-        if config['model_type'] == 'glm4_moe_lite':
+        if config['model_type'] in ('glm4_moe_lite','gpt_oss'):
             if not hasattr(self.loaded, 'set_experts_implementation'):
-                raise RuntimeError('GLM requires the checked Transformers 5.21 native expert implementation')
+                raise RuntimeError('MoE adapters require the checked Transformers 5.21 native expert implementation')
             self.loaded.set_experts_implementation('eager')
         self.source, self.config, self.device = source, config, device
         self.torch, self.bs = torch, batch_size
@@ -110,6 +114,9 @@ class Engine(KimiEngine):
             self.paths[key] = matches[0]
 
     def format_messages(self, messages, *, tokenize=True):
+        if self.config['model_type']=='gpt_oss':
+            return self.tok.apply_chat_template(messages,add_generation_prompt=True,
+                tokenize=tokenize,return_dict=False,reasoning_effort='low')
         return self.tok.apply_chat_template(messages,
             add_generation_prompt=True, tokenize=tokenize, return_dict=False, enable_thinking=False)
 

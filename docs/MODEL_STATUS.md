@@ -18,8 +18,9 @@ arbitrary models automatically. Kimi K3/K3.1 need separate architecture, licensi
 
 New [GLM and DeepSeek research support](GLM_DEEPSEEK_RESEARCH.md) is at the small CPU fixture stage.
 GLM now covers the native and upstream expert layouts, and DeepSeek-R1-0528-Qwen3-8B uses the existing
-Qwen3 backbone mapping. Neither has a completed full-size export or demo yet. GPT-OSS support remains
-unimplemented. These targets must not be counted among the five completed releases above.
+Qwen3 backbone mapping. [GPT-OSS support](GPT_OSS_RESEARCH.md) also has a tiny synthetic MXFP4-to-bf16
+conversion/reload fixture, expert projection tests and final-channel chat handling. None of the three
+has a completed full-size export or demo yet. They are not among the five completed releases above.
 
 The [fresh Qwen pilot](COMPARISON_RESULTS.md) measures attempt 1 separately from the historical
 JBB scores. Its 256-token response-prefix limit and narrow utility tasks constrain interpretation.
