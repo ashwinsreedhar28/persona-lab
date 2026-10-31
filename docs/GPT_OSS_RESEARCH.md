@@ -50,7 +50,11 @@ projection. Attention output matrices/biases and embeddings retain their checked
 Routing, gate/up matrices, attention sinks and unrelated tensors are preserved.
 
 Use eager attention, which includes attention sinks, and native eager experts. Extraction, reload and
-chat use the upstream Harmony template with low reasoning effort. The terminal displays only the
+chat use the upstream Harmony template with low reasoning effort and an explicitly opened ordinary
+analysis channel. The default open assistant header would otherwise make the first-token proxy score
+fixed protocol markers. This prompt policy is identical for original/edited checks and the demo, and
+does not force a final answer or disable reasoning. Both descriptive and legacy Harmony marker names
+are handled. The terminal displays only the
 assistant's final channel and does not execute tool messages. Its default budget is 4,096 generated
 tokens, including reasoning; an incomplete reasoning segment is not shown as a final answer.
 

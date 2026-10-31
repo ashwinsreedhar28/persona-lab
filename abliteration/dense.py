@@ -115,8 +115,19 @@ class Engine(KimiEngine):
 
     def format_messages(self, messages, *, tokenize=True):
         if self.config['model_type']=='gpt_oss':
-            return self.tok.apply_chat_template(messages,add_generation_prompt=True,
-                tokenize=tokenize,return_dict=False,reasoning_effort='low')
+            text=self.tok.apply_chat_template(messages,add_generation_prompt=True,
+                tokenize=False,return_dict=False,reasoning_effort='low')
+            # The default open header predicts fixed protocol markers first.
+            # Open the ordinary analysis channel consistently in extraction,
+            # baseline/edited checks and chat so the proxy measures content.
+            for start,channel,message in (('<|start|>','<|channel|>','<|message|>'),
+                                          ('<|im_start|>','<|meta_sep|>','<|im_sep|>')):
+                head=start+'assistant';opened=head+channel+'analysis'+message
+                if text.endswith(head):text+=channel+'analysis'+message;break
+                if text.endswith(head+channel+'analysis'):text+=message;break
+                if text.endswith(opened):break
+            else:raise ValueError('Unrecognized GPT-OSS generation header')
+            return self.tok.encode(text,add_special_tokens=False) if tokenize else text
         return self.tok.apply_chat_template(messages,
             add_generation_prompt=True, tokenize=tokenize, return_dict=False, enable_thinking=False)
 

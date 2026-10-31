@@ -69,7 +69,10 @@ def code_state():
     files = list((ROOT / 'abliteration').glob('*.py')) + [ROOT / 'abliterate.py', ROOT / 'research_checks.py']
     files += [ROOT / 'abl' / f for f in ('common.py', 'a2_directions.py', 'a4_edit.py', 'a5_projection.py')]
     files = [p for p in files if p.is_file()]
+    deployment=ROOT/'DEPLOYMENT.json'
+    if deployment.is_file():files.append(deployment)
     result = dict(sha256={str(p.relative_to(ROOT)): digest(p) for p in sorted(files)})
+    if deployment.is_file():result['deployment']=json.loads(deployment.read_text())
     try:
         result['git_head'] = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=ROOT,
                                                      stderr=subprocess.DEVNULL, text=True).strip()
@@ -179,7 +182,7 @@ def run(args):
         trust_remote_code=args.trust_remote_code,
         intervention_policy='Gemma: project each normalized writer along unit((1+norm_weight)*r); other writers along r'
             if cfg['model_type']=='gemma3' else 'Project residual writers along r',
-        prompt_policy='Native Harmony template; reasoning_effort=low; eager attention with sinks and eager experts'
+        prompt_policy='Native Harmony template; reasoning_effort=low; explicit ordinary analysis header; eager attention with sinks and eager experts'
             if cfg['model_type']=='gpt_oss' else 'Native template; enable_thinking=False where supported; record actual suffix IDs',
         reload_atol=args.reload_atol if args.reload_atol is not None else (1e-5 if adapter == 'qwen-mlx' else .02))
     write_json(meta / 'job.json', job)

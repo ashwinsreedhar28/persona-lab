@@ -47,6 +47,13 @@ class GptOssTests(unittest.TestCase):
         unfinished=FinalChannel(tok)
         for i in [3,6,1,9]:unfinished.put(i)
         self.assertEqual(unfinished.text(),'')
+        # The pinned source uses descriptive token aliases, not the older names.
+        class Native(Tok):
+            words=['<|start|>','<|message|>','<|end|>','<|channel|>','<|return|>','<|call|>',
+                   'analysis','final','assistant','private analysis','answer','assistant to=python','tool text']
+        native=FinalChannel(Native())
+        for i in ids:native.put(i)
+        self.assertEqual(native.text(),'answer')
 
     def test_mxfp4_preparation_and_independent_edited_reload(self):
         from transformers import GptOssConfig,GptOssForCausalLM
@@ -70,6 +77,12 @@ class GptOssTests(unittest.TestCase):
             c['quantization_config']={'quant_method':'mxfp4','modules_to_not_convert':[
                 'model.layers.*.self_attn','model.layers.*.mlp.router','model.embed_tokens','lm_head']}
             (source/'config.json').write_text(json.dumps(c));tokenizer(source);del model
+            from transformers import AutoTokenizer
+            tok=AutoTokenizer.from_pretrained(source)
+            tok.add_special_tokens({'additional_special_tokens':[
+                '<|start|>','<|message|>','<|end|>','<|channel|>','<|return|>','<|call|>']})
+            tok.chat_template='{% for m in messages %}<|start|>{{ m.role }}<|message|>{{ m.content }}<|end|>{% endfor %}{% if add_generation_prompt %}<|start|>assistant{% endif %}'
+            tok.save_pretrained(source)
             original_hash=digest(source/'model.safetensors')
             result=subprocess.run([sys.executable,'-m','abliteration.conversion','--model',str(source),
                 '--output',str(prepared),'--device','cpu'],cwd=ROOT,text=True,capture_output=True)
@@ -78,6 +91,8 @@ class GptOssTests(unittest.TestCase):
             self.assertEqual(original_hash,digest(source/'model.safetensors'))
             engine=Engine(str(prepared),json.loads((prepared/'config.json').read_text()),batch_size=1,device='cpu')
             self.assertEqual(engine.loaded.config._attn_implementation,'eager')
+            self.assertTrue(engine.format_messages([dict(role='user',content='hello')],tokenize=False).endswith(
+                '<|start|>assistant<|channel|>analysis<|message|>'))
             ids=engine.encode('hello')
             self.assertEqual(list(greedy_ids(engine,ids,set(),5,False)),list(greedy_ids(engine,ids,set(),5,True)))
             del engine
